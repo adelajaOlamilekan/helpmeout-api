@@ -5,20 +5,20 @@ from fastapi import UploadFile
 from pydantic import BaseModel
 from sqlalchemy import Column, Enum, Integer, String, DateTime
 
-from app.database.database import Base
+from app.database import Base
 
 
 class Video(Base):
     __tablename__ = "videos"
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, index=True)
-    created_date = Column(DateTime, default=datetime.utcnow)
-    original_location = Column(String)
-    compressed_location = Column(String, nullable=True)
-    thumbnail_location = Column(String, nullable=True)
-    file_type = Column(String)
-    status = Column(
+    id: int = Column(Integer, primary_key=True, index=True)
+    username: str = Column(String, index=True)
+    created_date: DateTime = Column(DateTime, default=datetime.utcnow)
+    original_location: str = Column(String)
+    compressed_location: str = Column(String, nullable=True)
+    thumbnail_location: str = Column(String, nullable=True)
+    file_type: str = Column(String)
+    status: str = Column(
         Enum("pending", "complete", "failed", name="processing_status"),
         default="pending",
     )

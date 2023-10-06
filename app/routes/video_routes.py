@@ -13,9 +13,8 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.config.settings import COMPRESSED_DIR, THUMBNAIL_DIR, VIDEO_DIR
-from app.database.database import get_db
-from app.models.models import Video, VideoBlob
+from app.database import get_db
+from app.models.video_models import Video, VideoBlob
 from app.services.services import (
     is_valid_video,
     process_video,
@@ -23,6 +22,7 @@ from app.services.services import (
     save_blob,
     merge_blobs,
 )
+from app.settings import COMPRESSED_DIR, THUMBNAIL_DIR, VIDEO_DIR
 
 router = APIRouter(prefix="/srce/api")
 
@@ -35,13 +35,17 @@ def upload_video(
     db: Session = Depends(get_db),
 ):
     """
-    Uploads a video file to the server and saves the video data to the database.
+    Uploads a video file to the server and saves the video data to the
+    database.
 
     Parameters:
-    - background_tasks (BackgroundTasks): A background tasks instance used to enqueue the video processing task.
+    - background_tasks (BackgroundTasks): A background tasks instance used to
+        enqueue the video processing task.
     - username (str): The username of the user uploading the video.
-    - file (UploadFile, optional): The video file to be uploaded. Defaults to File(...).
-    - db (Session, optional): The database session. Defaults to Depends(get_db).
+    - file (UploadFile, optional): The video file to be uploaded. Defaults to
+        File(...).
+    - db (Session, optional): The database session. Defaults to
+        Depends(get_db).
 
     Returns:
     - dict: A dictionary containing the success message and the video data.
@@ -115,10 +119,12 @@ def upload_video_blob(
     Args:
         background_tasks (BackgroundTasks): The background tasks object.
         video_blob (VideoBlob): The video blob data.
-        db (Session, optional): The database session. Defaults to Depends(get_db).
+        db (Session, optional): The database session. Defaults to
+            Depends(get_db).
 
     Returns:
-        dict: A dictionary containing the success message and video data if applicable.
+        dict: A dictionary containing the success message and video data if
+            applicable.
 
     Raises:
         None
@@ -175,7 +181,8 @@ def get_videos(username: str, db: Session = Depends(get_db)):
         username (str): The username for which to retrieve the videos.
         db (Session): The database session.
     Returns:
-        List[Video]: A list of Video objects associated with the given username.
+        List[Video]: A list of Video objects associated with the given
+            username.
     """
     # Convert the username to lowercase for querying
     username = username.lower()
@@ -191,7 +198,8 @@ def stream_video(video_id: int, db: Session = Depends(get_db)):
     Stream a video by its video ID.
     Parameters:
     - video_id (int): The ID of the video to be streamed.
-    - db (Session, optional): The database session. Defaults to the result of the get_db function.
+    - db (Session, optional): The database session. Defaults to the result of
+        the get_db function.
     Returns:
     - FileResponse: The file response containing the video stream.
     Raises:
@@ -208,17 +216,21 @@ def stream_video(video_id: int, db: Session = Depends(get_db)):
 @router.delete("/video/{video_id}")
 def delete_video(video_id: int, db: Session = Depends(get_db)):
     """
-    Deletes a video from the database and removes its associated files from the file system.
+    Deletes a video from the database and removes its associated files from the
+        file system.
 
     Parameters:
         - video_id (int): The ID of the video to be deleted.
-        - db (Session, optional): The database session. Defaults to the result of the `get_db` function.
+        - db (Session, optional): The database session. Defaults to the result
+            of the `get_db` function.
 
     Returns:
-        - dict: A dictionary with a single key "msg" and the value "Video deleted successfully!"
+        - dict: A dictionary with a single key "msg" and the value "Video
+            deleted successfully!"
 
     Raises:
-        - HTTPException: If the video with the specified ID is not found in the database.
+        - HTTPException: If the video with the specified ID is not found in
+            the database.
     """
     if video := db.query(Video).filter(Video.id == video_id).first():
         os.remove(video.original_location)

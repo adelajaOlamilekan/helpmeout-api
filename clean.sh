@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+MEDIA_DIR="media"
+DB="screen_recording_app.db"
 
-if [ -d "media" ]; then
+if [ -d $MEDIA_DIR ]; then
     echo "Removing media directory"
     rm -rf media
 fi
-if [ -f "screen_recording_app.db" ]; then
+
+if [ -f $DB ]; then
     echo "Removing database"
-    rm screen_recording_app.db
+    rm helpmeout.db
 fi
