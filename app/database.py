@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from app.config.settings import (
+from app.settings import (
     DB_USER,
     DB_PASSWORD,
     DB_PORT,
