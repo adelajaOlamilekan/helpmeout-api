@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import Video, VideoBlob
+from app.models.video_models import Video, VideoBlob
 from app.services.services import (
     is_valid_video,
     process_video,

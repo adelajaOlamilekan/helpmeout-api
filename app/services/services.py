@@ -5,7 +5,7 @@ import subprocess
 from fastapi import HTTPException
 
 from app.database import get_db
-from app.models.models import Video
+from app.models.video_models import Video
 from app.settings import COMPRESSED_DIR, THUMBNAIL_DIR, VIDEO_DIR
 
 

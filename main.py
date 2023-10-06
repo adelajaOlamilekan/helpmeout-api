@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app.routes.routers import router
+from app.routes.video_routes import router
 
 app = FastAPI()
 app.include_router(router)
