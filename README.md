@@ -1,10 +1,11 @@
-# Chrome Extension Backend
+# Chrome Extension API
 
 ## Overview
 
 This service offers an API for recording and processing videos. Users can upload video data in the form of "blobs" or
 chunks, which the service then compiles, compresses, and extracts thumbnails from. It's designed to integrate with a
-Chrome extension that captures the user's screen.
+Chrome extension that captures the user's screen. The uploaded videos are then transcribed using a speech-to-text API
+service.
 
 ## Features
 
