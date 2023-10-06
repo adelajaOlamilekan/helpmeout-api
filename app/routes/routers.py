@@ -13,17 +13,16 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import Video, VideoBlob
-from services import (
+from app.config.settings import COMPRESSED_DIR, THUMBNAIL_DIR, VIDEO_DIR
+from app.database.database import get_db
+from app.models.models import Video, VideoBlob
+from app.services.services import (
     is_valid_video,
     process_video,
     create_directory,
     save_blob,
     merge_blobs,
 )
-from settings import COMPRESSED_DIR, THUMBNAIL_DIR, VIDEO_DIR
-
 
 router = APIRouter(prefix="/srce/api")
 
@@ -202,7 +201,7 @@ def stream_video(video_id: int, db: Session = Depends(get_db)):
     db.close()
 
     if video:
-        return FileResponse(video.compressed_location, media_type="video/mp4")
+        return FileResponse(video.original_location, media_type="video/mp4")
     raise HTTPException(status_code=404, detail="Video not found.")
 
 

@@ -1,4 +1,5 @@
 import base64
+
 import requests
 
 # Configuration
@@ -6,7 +7,7 @@ VIDEO_FILE_PATH = "/home/cofucan/Videos/test_rec.mkv"
 ENDPOINT_URL = "http://127.0.0.1:8000/srce/api/upload_blob/"
 BLOB_SIZE = 1 * 1024 * 1024  # 1MB by default. Adjust as needed.
 USERNAME = "cofucan"
-FILENAME = "projectdemo"  # This should be unique for each video.
+FILENAME = "videoA"  # This should be unique for each video.
 
 
 def send_blob(blob, blob_id, is_last):

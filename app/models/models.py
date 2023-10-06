@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, Enum, Integer, String, DateTime
 from typing import Optional, Union
 
 from fastapi import UploadFile
 from pydantic import BaseModel
-from database import Base
+from sqlalchemy import Column, Enum, Integer, String, DateTime
+
+from app.database.database import Base
 
 
 class Video(Base):
