@@ -64,7 +64,7 @@ def upload_video_blob(
 
     Args:
         background_tasks (BackgroundTasks): The background tasks object.
-        Video_blob (VideoBlob): The video blob data.
+        video_data (VideoBlob): The json data cintaining video information
         Db (Session, optional): The database session.
             Defaults to Depends(get_db).
 
