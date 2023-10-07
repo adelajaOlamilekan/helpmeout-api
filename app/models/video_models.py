@@ -7,26 +7,23 @@ from datetime import datetime
 from typing import Union
 from app.database import Base
 
-
 class Video(Base):
     __tablename__ = "videos"
 
-    id: str = Column(String, primary_key=True, unique=True, default=generate(size=10))
-    username: str = Column(String, index=True)
+    id: str = Column(String, primary_key=True, unique=True, nullable=False)
+    user_id: str = Column(String, nullable=False, foreign_key=("users.id"))
     created_date: DateTime = Column(DateTime, default=datetime.utcnow)
-    original_location: str = Column(String)
+    original_location: str = Column(String, nullable=True)
     compressed_location: str = Column(String, nullable=True)
     thumbnail_location: str = Column(String, nullable=True)
-    file_type: str = Column(String)
     status: str = Column(
-        Enum("pending", "processing" "complete", "failed", name="processing_status"),
-        default="pending",
+        Enum("recording", "processing" "completed", "failed", name="processing_status"),
+        default="recording",
     )
 
-
 class VideoBlob(BaseModel):
+    user_id: str
     video_id: str
     blob_index: int
-    user_id: str
-    blob_object: Union[bytes, UploadFile]
+    blob_object: bytes
     is_last: bool
