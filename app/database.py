@@ -21,7 +21,6 @@ else:
 
 # Create all Tables
 Base = declarative_base()
-Base.metadata.create_all(bind=engine)
 
 # Setup SessionLocal
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -29,6 +28,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Connect db session
 def get_db():
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         yield db

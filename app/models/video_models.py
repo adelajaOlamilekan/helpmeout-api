@@ -10,7 +10,7 @@ class Video(Base):
     __tablename__ = "videos"
 
     id: str = Column(String, primary_key=True, unique=True, nullable=False)
-    user_id: str = Column(String, nullable=False, foreign_key="users.id")
+    user_id: str = Column(String, nullable=False)
     created_date: DateTime = Column(DateTime, default=datetime.utcnow)
     original_location: str = Column(String, nullable=True)
     compressed_location: str = Column(String, nullable=True)

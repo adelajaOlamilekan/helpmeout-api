@@ -3,6 +3,7 @@ import json
 import os
 
 from fastapi import (
+    APIRouter,
     BackgroundTasks,
     Depends,
     HTTPException,
@@ -10,15 +11,16 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app import router
 from app.database import get_db
 from app.models.video_models import Video, VideoBlob
 from app.services.services import save_blob, merge_blobs, generate_id
 
+router = APIRouter(prefix="/srce/api")
+
 
 @router.post("/start-recording/")
 def start_recording(
-    video_data: VideoBlob,
+    user_data: dict,
     db: Session = Depends(get_db),
 ):
     """
@@ -34,7 +36,7 @@ def start_recording(
     Raises:
         None
     """
-    user_id = video_data.user_id
+    user_id = user_data.get("user_id")
     video_data = Video(
         id=generate_id(),
         user_id=user_id,
