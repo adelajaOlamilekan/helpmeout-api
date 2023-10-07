@@ -3,7 +3,9 @@ from typing import Optional, Union
 
 from fastapi import UploadFile
 from pydantic import BaseModel
-from sqlalchemy import Column, Enum, Integer, String, DateTime
+from sqlalchemy import Column, Enum, Integer, String, DateTime, ForeignKey
+
+from user_models import User
 
 from app.database import Base
 
