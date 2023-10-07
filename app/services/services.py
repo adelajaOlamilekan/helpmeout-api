@@ -1,6 +1,7 @@
 import glob
 import os
 import subprocess
+import nanoid
 
 from fastapi import HTTPException
 
@@ -142,7 +143,7 @@ def create_directory(*args):
             os.makedirs(path, exist_ok=True)
 
 
-def save_blob(username: str, filename: str, blob_id: int, blob: bytes) -> str:
+def save_blob(user_id: str, video_id: str, blob_index: int, blob: bytes) -> str:
     """Saves a video blob/chunk.
 
     Parameters:
@@ -155,12 +156,12 @@ def save_blob(username: str, filename: str, blob_id: int, blob: bytes) -> str:
     - The path to the saved blob.
     """
     # Create the directory structure if it doesn't exist
-    user_dir = os.path.join(VIDEO_DIR, username)
-    temp_video_dir = os.path.join(user_dir, filename)
+    user_dir = os.path.join(VIDEO_DIR, user_id)
+    temp_video_dir = os.path.join(user_dir, video_id)
     create_directory(user_dir, temp_video_dir)
 
     # Save the blob
-    blob_filename = f"{blob_id}.mkv"
+    blob_filename = f"{blob_index}.mp4"
     blob_path = os.path.join(temp_video_dir, blob_filename)
     with open(blob_path, "wb") as f:
         f.write(blob)
@@ -168,7 +169,7 @@ def save_blob(username: str, filename: str, blob_id: int, blob: bytes) -> str:
     return blob_path
 
 
-def merge_blobs(username: str, filename: str) -> str:
+def merge_blobs(user_id: str, video_id: str) -> str:
     """Merges video blobs/chunks to form the complete video.
 
     Parameters:
@@ -178,18 +179,19 @@ def merge_blobs(username: str, filename: str) -> str:
     Returns:
     - The path to the merged video.
     """
-    user_dir = os.path.join(VIDEO_DIR, username)
+    user_dir = os.path.join(VIDEO_DIR, user_id)
     user_dir = os.path.abspath(user_dir)
-    temp_video_dir = os.path.join(user_dir, filename)
+    temp_video_dir = os.path.join(user_dir, video_id)
     temp_video_dir = os.path.abspath(temp_video_dir)
 
     # List all blob files and sort them by their sequence ID
     blob_files = sorted(
-        glob.glob(os.path.join(temp_video_dir, "*.mkv")),
+        glob.glob(os.path.join(temp_video_dir, "*.mp4")),
         key=lambda x: int(os.path.splitext(os.path.basename(x))[0]),
     )
+
     # Merge the blobs
-    merged_video_path = os.path.join(user_dir, f"{filename}.mkv")
+    merged_video_path = os.path.join(user_dir, f"{video_id}.mp4")
     with open(merged_video_path, "wb") as merged_file:
         for blob_file in blob_files:
             with open(blob_file, "rb") as f:
@@ -199,3 +201,14 @@ def merge_blobs(username: str, filename: str) -> str:
     # shutil.rmtree(temp_video_dir)
 
     return merged_video_path
+
+def generate_id():
+    """
+    Generate a unique ID for a video.
+
+    Returns:
+    - str: A unique ID for a video.
+    """
+    
+    ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    return str(nanoid.generate(size=10, alphabet=ALPHABET))
