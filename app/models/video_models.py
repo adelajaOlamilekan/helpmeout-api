@@ -1,25 +1,31 @@
-from enum import unique
-from fastapi import UploadFile
-from pydantic import BaseModel
-from sqlalchemy import Column, Enum, Integer, String, DateTime
-from nanoid import generate
 from datetime import datetime
-from typing import Union
+
+from pydantic import BaseModel
+from sqlalchemy import Column, Enum, String, DateTime
+
 from app.database import Base
+
 
 class Video(Base):
     __tablename__ = "videos"
 
     id: str = Column(String, primary_key=True, unique=True, nullable=False)
-    user_id: str = Column(String, nullable=False, foreign_key=("users.id"))
+    user_id: str = Column(String, nullable=False, foreign_key="users.id")
     created_date: DateTime = Column(DateTime, default=datetime.utcnow)
     original_location: str = Column(String, nullable=True)
     compressed_location: str = Column(String, nullable=True)
     thumbnail_location: str = Column(String, nullable=True)
     status: str = Column(
-        Enum("recording", "processing" "completed", "failed", name="processing_status"),
+        Enum(
+            "recording",
+            "processing",
+            "completed",
+            "failed",
+            name="processing_status",
+        ),
         default="recording",
     )
+
 
 class VideoBlob(BaseModel):
     user_id: str

@@ -1,12 +1,19 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 import base64
+import json
 import os
 
-from app.services.services import save_blob, merge_blobs, generate_id
-from app.models.video_models import Video, VideoBlob
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+)
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
+
 from app.database import get_db
+from app.models.video_models import Video, VideoBlob
+from app.services.services import save_blob, merge_blobs, generate_id
 
 router = APIRouter(prefix="/scre/api")
 
@@ -20,7 +27,7 @@ def start_recording(
     Start the recording process.
     Args:
         user_id (str): The user ID.
-        db (Session, optional): The database session. Defaults to
+        Db (Session, optional): The database session. Default
             Depends(get_db).
 
     Returns:
@@ -31,7 +38,7 @@ def start_recording(
     """
     user_id = video_data.user_id
     video_data = Video(
-        id = generate_id(),
+        id=generate_id(),
         user_id=user_id,
     )
 
@@ -39,17 +46,17 @@ def start_recording(
     db.commit()
 
     Response = {
-            "message": "Recording started successfully",
-            "video_id": video_data.id,
-        }
+        "message": "Recording started successfully",
+        "video_id": video_data.id,
+        "video_url": f"/scre/api/recording/{video_data.id}",
+    }
 
-    return json.dumps(Response, indent = 2)
+    return json.dumps(Response, indent=2)
 
 
-@router.post("/recording/{video_id}")
+@router.post("/recording/upload/")
 def upload_video_blob(
     background_tasks: BackgroundTasks,
-    video_id: str,
     video_data: VideoBlob,
     db: Session = Depends(get_db),
 ):
@@ -58,9 +65,9 @@ def upload_video_blob(
 
     Args:
         background_tasks (BackgroundTasks): The background tasks object.
-        video_blob (VideoBlob): The video blob data.
-        db (Session, optional): The database session. Defaults to
-            Depends(get_db).
+        Video_blob (VideoBlob): The video blob data.
+        Db (Session, optional): The database session.
+            Defaults to Depends(get_db).
 
     Returns:
         dict: A dictionary containing the success message and video data if
@@ -70,7 +77,7 @@ def upload_video_blob(
         None
     """
     # Query the database for the video id
-    video = db.query(Video).filter(Video.id == video_id).first()
+    video = db.query(Video).filter(Video.id == video_data.video_id).first()
 
     # If the video is not found, raise an exception
     if not video:
@@ -80,20 +87,23 @@ def upload_video_blob(
     blob_data = base64.b64decode(video_data.blob_object)
 
     # Save the blob
-    _ = save_blob(video_data.user_id, video_id, video_data.blob_index, blob_data)
+    _ = save_blob(
+        video_data.user_id,
+        video_data.video_id,
+        video_data.blob_index,
+        blob_data,
+    )
 
     # If it's the last blob, merge all blobs and process the video
-    if video_blob.is_last:
+    if video.is_last:
         # Update the video status to processing
         video_data.status = "processing"
         db.commit()
-        db.close
+        db.close()
 
         # Merge the blobs in a background task
         background_tasks.add_task(
-            merge_blobs,
-            video_data.user_id,
-            video_id
+            merge_blobs, video_data.user_id, video_data.video_id
         )
 
         # Process the video in the background
@@ -103,15 +113,15 @@ def upload_video_blob(
         #     merged_video_path,
         #     video_blob.filename,
         # )
-        
+
         Response = {
             "message": "Chunks received successfully and video is being processed",
-            "video_id": video_id,
+            "video_id": video_data.video_id,
             "video_url": f"/scre/api/recording/{video_data.video_id}",
             "thumbnail_url": f"/scre/api/thumbnail/{video_data.video_id}",
             "transcript_url": f"/scre/api/transcript/{video_data.video_id}",
         }
-        return json.dumps(Response, indent = 2)
+        return json.dumps(Response, indent=2)
     db.close()
 
     return {"msg": "Video blob received successfully!"}
@@ -120,17 +130,17 @@ def upload_video_blob(
 @router.get("/videos/user/{user_id}")
 def get_videos(user_id: str, db: Session = Depends(get_db)):
     """
-    Returns a list of videos associated with the given uswr_id.
+    Returns a list of videos associated with the given user_id.
     Parameters:
         username (str): The username for which to retrieve the videos.
-        db (Session): The database session.
+        Db (Session): The database session.
     Returns:
         List[Video]: A list of Video objects associated with the given
             username.
     """
     videos = db.query(Video).filter(Video.user_id == user_id).all()
     db.close()
-    return json.dumps(videos, indent = 2)
+    return json.dumps(videos, indent=2)
 
 
 @router.get("/video/{video_id}")
