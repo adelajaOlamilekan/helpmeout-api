@@ -95,15 +95,12 @@ def upload_video_blob(
 
     # If it's the last blob, merge all blobs and process the video
     if video.is_last:
-        # Update the video status to processing
-        video_data.status = "processing"
+        # Merge the blobs
+        video.original_location = merge_blobs(video_data.user_id, video_data.video_id)
+
+        video_data.status = "completed"
         db.commit()
         db.close()
-
-        # Merge the blobs in a background task
-        background_tasks.add_task(
-            merge_blobs, video_data.user_id, video_data.video_id
-        )
 
         # Process the video in the background
         # background_tasks.add_task(
@@ -143,7 +140,7 @@ def get_videos(user_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/video/{video_id}")
-def stream_video(video_id: int, db: Session = Depends(get_db)):
+def stream_video(video_id: str, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.
     Parameters:
@@ -164,7 +161,7 @@ def stream_video(video_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/video/{video_id}")
-def delete_video(video_id: int, db: Session = Depends(get_db)):
+def delete_video(video_id: str, db: Session = Depends(get_db)):
     """
     Deletes a video from the database and removes its associated files from the
         file system.
