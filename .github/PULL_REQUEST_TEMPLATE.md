@@ -10,3 +10,6 @@ Fixes #1234
 
 ## Testing Done:
 Describe the tests added to ensure the new implementation works as expected, including any test cases, inputs, and results.
+
+## Screenshots (if applicable):
+Attach screenshots, showing the newly implemented feature or bug fix working well on postman or its equivalent
