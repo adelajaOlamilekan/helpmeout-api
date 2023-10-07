@@ -200,7 +200,7 @@ def merge_blobs(user_id: str, video_id: str) -> str:
                 merged_file.write(f.read())
 
     # Optionally, remove the temporary directory containing blobs
-    shutil.rmtree(temp_video_dir)
+    # shutil.rmtree(temp_video_dir)
 
     video.status = "completed"
     video.original_location = merged_video_path
