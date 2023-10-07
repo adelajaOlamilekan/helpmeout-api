@@ -179,11 +179,9 @@ def merge_blobs(user_id: str, video_id: str) -> str:
     Returns:
     - The path to the merged video.
     """
-    video = db.query(Video).filter(Video.id == video_id).first()
-
-    user_dir = os.path.join(VIDEO_DIR, username)
+    user_dir = os.path.join(VIDEO_DIR, user_id)
     user_dir = os.path.abspath(user_dir)
-    temp_video_dir = os.path.join(user_dir, filename)
+    temp_video_dir = os.path.join(user_dir, video_id)
     temp_video_dir = os.path.abspath(temp_video_dir)
 
     # List all blob files and sort them by their sequence ID
@@ -201,11 +199,6 @@ def merge_blobs(user_id: str, video_id: str) -> str:
 
     # Optionally, remove the temporary directory containing blobs
     # shutil.rmtree(temp_video_dir)
-
-    video.status = "completed"
-    video.original_location = merged_video_path
-    db.commit()
-    db.close()
 
     return merged_video_path
 
