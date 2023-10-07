@@ -11,15 +11,20 @@ class User(Base):
     __tablename__ = "users"
 
     id: int = Column(Integer, primary_key=True, index=True)
-    username: str = Column(String, index = True, unique=True, nullable=False)
-    password: str = Column(String, nullable=False)
-    email: str = Column(String, nullable=False)
+    username: str = Column(String, index = True, unique=True, nullable=False, default=None)
+    # email: str = Column(String, nullable=True)
+    hashed_password: str = Column(String, unique= True, nullable=False)
     created_date: DateTime = Column(DateTime, server_default=func.now())
     updated_date: DateTime = Column(DateTime, onupdate=func.now())
     is_deleted: bool = Column(Boolean, default= False)
 
-class UserSchema(BaseModel):
-    email: str
-    hashed_password: str
-    id: Optional[int]= None
-    username: Optional[str] = None
+
+class UserRequest(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(BaseModel):
+    message: str
+    status_code: int
+    data: Optional[dict] = None
+    
