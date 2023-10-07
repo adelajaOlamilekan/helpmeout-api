@@ -11,24 +11,24 @@ from app.settings import (
     DB_TYPE,
 )
 
+# Setup Database URL and Create Engine
 if DB_TYPE == "mysql":
     DB_URL = f"mysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     engine = create_engine(DB_URL)
-
 else:
     DB_URL = f"sqlite:///./{DB_NAME}.db"
     engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
+
+# Create all Tables
+Base = declarative_base()
+Base.metadata.create_all(bind=engine)
+
+# Setup SessionLocal
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
 
-
-def create_tables():
-    Base.metadata.create_all(bind=engine)
-
-
+# Connect db session
 def get_db():
-    create_tables()
     db = SessionLocal()
     try:
         yield db
