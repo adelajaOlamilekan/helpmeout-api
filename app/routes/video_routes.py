@@ -3,7 +3,6 @@ import json
 import os
 
 from fastapi import (
-    APIRouter,
     BackgroundTasks,
     Depends,
     HTTPException,
@@ -11,11 +10,10 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app import router
 from app.database import get_db
 from app.models.video_models import Video, VideoBlob
 from app.services.services import save_blob, merge_blobs, generate_id
-
-router = APIRouter(prefix="/scre/api")
 
 
 @router.post("/start-recording/")
@@ -48,7 +46,6 @@ def start_recording(
     Response = {
         "message": "Recording started successfully",
         "video_id": video_data.id,
-        "video_url": f"/scre/api/recording/{video_data.id}",
     }
 
     return json.dumps(Response, indent=2)
@@ -124,7 +121,7 @@ def upload_video_blob(
         return json.dumps(Response, indent=2)
     db.close()
 
-    return {"msg": "Video blob received successfully!"}
+    return {"msg": "Chunk received successfully!"}
 
 
 @router.get("/videos/user/{user_id}")
