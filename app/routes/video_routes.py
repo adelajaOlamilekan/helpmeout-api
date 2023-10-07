@@ -129,7 +129,7 @@ def get_videos(user_id: str, db: Session = Depends(get_db)):
     Returns a list of videos associated with the given user_id.
     Parameters:
         username (str): The username for which to retrieve the videos.
-        Db (Session): The database session.
+        db (Session): The database session.
     Returns:
         List[Video]: A list of Video objects associated with the given
             username.
