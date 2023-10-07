@@ -20,6 +20,6 @@ class User(Base):
 
 class UserSchema(BaseModel):
     email: str
-    password: str
+    hashed_password: str
     id: Optional[int]= None
     username: Optional[str] = None

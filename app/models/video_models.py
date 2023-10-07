@@ -3,12 +3,9 @@ from typing import Optional, Union
 
 from fastapi import UploadFile
 from pydantic import BaseModel
-from sqlalchemy import Column, Enum, Integer, String, DateTime, ForeignKey
-
-from user_models import User
+from sqlalchemy import Column, Enum, Integer, String, DateTime
 
 from app.database import Base
-
 
 class Video(Base):
     __tablename__ = "videos"

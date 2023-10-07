@@ -24,10 +24,10 @@ from app.services.services import (
 )
 from app.settings import COMPRESSED_DIR, THUMBNAIL_DIR, VIDEO_DIR
 
-router = APIRouter(prefix="/srce/api")
+video_router = APIRouter(prefix="/srce/api")
 
 
-@router.post("/upload/")
+@video_router.post("/upload/")
 def upload_video(
     background_tasks: BackgroundTasks,
     username: str,
@@ -107,7 +107,7 @@ def upload_video(
     }
 
 
-@router.post("/upload_blob/")
+@video_router.post("/upload_blob/")
 def upload_video_blob(
     background_tasks: BackgroundTasks,
     video_blob: VideoBlob,
@@ -173,7 +173,7 @@ def upload_video_blob(
     return {"msg": "Video blob received successfully!"}
 
 
-@router.get("/videos/{username}")
+@video_router.get("/videos/{username}")
 def get_videos(username: str, db: Session = Depends(get_db)):
     """
     Returns a list of videos associated with the given username.
@@ -192,7 +192,7 @@ def get_videos(username: str, db: Session = Depends(get_db)):
     return videos
 
 
-@router.get("/video/stream/{video_id}")
+@video_router.get("/video/stream/{video_id}")
 def stream_video(video_id: int, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.
@@ -213,7 +213,7 @@ def stream_video(video_id: int, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Video not found.")
 
 
-@router.delete("/video/{video_id}")
+@video_router.delete("/video/{video_id}")
 def delete_video(video_id: int, db: Session = Depends(get_db)):
     """
     Deletes a video from the database and removes its associated files from the
