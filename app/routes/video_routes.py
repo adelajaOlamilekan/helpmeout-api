@@ -45,12 +45,12 @@ def start_recording(
     db.add(video_data)
     db.commit()
 
-    Response = {
+    response = {
         "message": "Recording started successfully",
         "video_id": video_data.id,
     }
 
-    return json.dumps(Response, indent=2)
+    return json.dumps(response, indent=2)
 
 
 @router.post("/upload-recording/")
@@ -110,14 +110,14 @@ def upload_video_blob(
         #     video_blob.filename,
         # )
 
-        Response = {
+        response = {
             "message": "Chunks received successfully and video is being processed",
             "video_id": video_data.video_id,
             "video_url": f"/scre/api/recording/{video_data.video_id}",
             "thumbnail_url": f"/scre/api/thumbnail/{video_data.video_id}",
             "transcript_url": f"/scre/api/transcript/{video_data.video_id}",
         }
-        return json.dumps(Response, indent=2)
+        return json.dumps(response, indent=2)
     db.close()
 
     return {"msg": "Chunk received successfully!"}
