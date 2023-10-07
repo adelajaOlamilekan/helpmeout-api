@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.video_routes import router
+from app.routes.auth_routes import auth_router
 
 
 def create_app():
@@ -18,5 +19,6 @@ def create_app():
 
     # Include routes
     app.include_router(router)
+    app.include_router(auth_router)
 
     return app
