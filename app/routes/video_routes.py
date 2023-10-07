@@ -53,7 +53,7 @@ def start_recording(
     return json.dumps(Response, indent=2)
 
 
-@router.post("/recording/upload/")
+@router.post("/upload-recording/")
 def upload_video_blob(
     background_tasks: BackgroundTasks,
     video_data: VideoBlob,
