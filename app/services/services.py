@@ -1,19 +1,23 @@
+import asyncio
 import glob
+import json
 import os
 import subprocess
-import nanoid
 
+import nanoid
+from deepgram import Deepgram
 from fastapi import HTTPException
 
 from app.database import get_db
 from app.models.video_models import Video
-from app.settings import COMPRESSED_DIR, THUMBNAIL_DIR, VIDEO_DIR
+from app.settings import VIDEO_DIR, DEEPGRAM_API_KEY
 
 
 def process_video(
     video_id: int,
     file_location: str,
     filename: str,
+    username: str,
 ):
     """
     Process a video by compressing it and extracting a thumbnail.
@@ -24,7 +28,7 @@ def process_video(
         filename (str): The name of the video file.
 
     Raises:
-        HTTPException: If an error occurs during video compression or thumbnail extraction.
+        HTTPException: If an error occurs.
 
     Returns:
         None
@@ -33,31 +37,59 @@ def process_video(
     video = db.query(Video).filter(Video.id == video_id).first()
 
     # Generate compressed and thumbnail filenames
+    audio = f"audio_{filename}.mp3"
+    audio_location = os.path.join(VIDEO_DIR, username, filename, audio)
+    audio_location = os.path.abspath(audio_location)
+    trans = f"transcript_{filename}.json"
+    transcript_location = os.path.join(VIDEO_DIR, username, filename, trans)
+    transcript_location = os.path.abspath(transcript_location)
     comp = f"compressed_{filename}.mp4"
-    compressed_location = os.path.join(COMPRESSED_DIR, comp)
+    compressed_location = os.path.join(VIDEO_DIR, username, filename, comp)
     compressed_location = os.path.abspath(compressed_location)
     thumb = f"thumbnail_{filename}.jpg"
-    thumbnail_location = os.path.join(THUMBNAIL_DIR, thumb)
+    thumbnail_location = os.path.join(VIDEO_DIR, username, filename, thumb)
     thumbnail_location = os.path.abspath(thumbnail_location)
 
     try:
+        extract_audio(file_location, audio_location)
+        asyncio.run(
+            generate_transcript(
+                audio_location, transcript_location, DEEPGRAM_API_KEY
+            )
+        )
         compress_video(file_location, compressed_location)
         extract_thumbnail(compressed_location, thumbnail_location)
     except Exception as err:
         # Delete the uploaded file if an error occurs
-        if os.path.exists(file_location):
-            os.remove(file_location)
+        # if os.path.exists(file_location):
+        #     os.remove(file_location)
         # Update the video status to `failed`
         video.status = "failed"
         raise HTTPException(status_code=500, detail=str(err)) from err
 
     # Update the video status and save the compressed and thumbnail locations
+    video.transcript_location = transcript_location
     video.compressed_location = compressed_location
     video.thumbnail_location = thumbnail_location
     video.status = "complete"
 
     db.commit()
     db.close()
+
+
+def extract_audio(input_path: str, output_path: str) -> None:
+    command = [
+        "ffmpeg",
+        "-i",
+        input_path,
+        "-vn",
+        "-c:a",
+        "libmp3lame",
+        "-q:a",
+        "2",
+        output_path,
+    ]
+    subprocess.run(command, check=True)
 
 
 def compress_video(input_path: str, output_path: str) -> None:
@@ -124,6 +156,7 @@ def is_valid_video(file_location: str) -> bool:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        check=False,
     )
     msg = "Invalid data found when processing input"
     return msg not in result.stderr
@@ -143,7 +176,9 @@ def create_directory(*args):
             os.makedirs(path, exist_ok=True)
 
 
-def save_blob(user_id: str, video_id: str, blob_index: int, blob: bytes) -> str:
+def save_blob(
+    username: str, video_id: str, blob_index: int, blob: bytes
+) -> str:
     """Saves a video blob/chunk.
 
     Parameters:
@@ -156,7 +191,7 @@ def save_blob(user_id: str, video_id: str, blob_index: int, blob: bytes) -> str:
     - The path to the saved blob.
     """
     # Create the directory structure if it doesn't exist
-    user_dir = os.path.join(VIDEO_DIR, user_id)
+    user_dir = os.path.join(VIDEO_DIR, username)
     temp_video_dir = os.path.join(user_dir, video_id)
     create_directory(user_dir, temp_video_dir)
 
@@ -169,7 +204,7 @@ def save_blob(user_id: str, video_id: str, blob_index: int, blob: bytes) -> str:
     return blob_path
 
 
-def merge_blobs(user_id: str, video_id: str) -> str:
+def merge_blobs(username: str, video_id: str) -> str:
     """Merges video blobs/chunks to form the complete video.
 
     Parameters:
@@ -179,7 +214,7 @@ def merge_blobs(user_id: str, video_id: str) -> str:
     Returns:
     - The path to the merged video.
     """
-    user_dir = os.path.join(VIDEO_DIR, user_id)
+    user_dir = os.path.join(VIDEO_DIR, username)
     user_dir = os.path.abspath(user_dir)
     temp_video_dir = os.path.join(user_dir, video_id)
     temp_video_dir = os.path.abspath(temp_video_dir)
@@ -191,16 +226,19 @@ def merge_blobs(user_id: str, video_id: str) -> str:
     )
 
     # Merge the blobs
-    merged_video_path = os.path.join(user_dir, f"{video_id}.mp4")
+    merged_video_path = os.path.join(temp_video_dir, f"{video_id}.mp4")
     with open(merged_video_path, "wb") as merged_file:
         for blob_file in blob_files:
             with open(blob_file, "rb") as f:
                 merged_file.write(f.read())
 
-    # Optionally, remove the temporary directory containing blobs
+    # Optionally, remove the blobs
+    # for blob in blob_files:
+    #     os.remove(blob)
     # shutil.rmtree(temp_video_dir)
 
     return merged_video_path
+
 
 def generate_id():
     """
@@ -209,6 +247,29 @@ def generate_id():
     Returns:
     - str: A unique ID for a video.
     """
-    
-    ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    return str(nanoid.generate(size=10, alphabet=ALPHABET))
+
+    alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    return str(nanoid.generate(size=10, alphabet=alphabet))
+
+
+def get_transcript(audio_file: str, output_path: str) -> None:
+    # Call the async function
+    asyncio.run(generate_transcript(audio_file, output_path, DEEPGRAM_API_KEY))
+
+
+async def generate_transcript(audio_file: str, save_to: str, api_key: str):
+    dg_client = Deepgram(api_key)
+
+    params = {"punctuate": True, "tier": "enhanced"}
+    with open(audio_file, "rb") as audio:
+        source = {"buffer": audio, "mimetype": "audio/mp3"}
+
+        response = await dg_client.transcription.prerecorded(
+            source, params, timeout=120
+        )
+
+        print(response)
+
+        # Write the response to a file
+        with open(save_to, "w", encoding="utf-8") as audio:
+            json.dump(response, audio)
