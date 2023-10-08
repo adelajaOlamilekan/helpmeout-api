@@ -183,3 +183,6 @@ cython_debug/
 
 # ignore local deployment tarballs
 .deployments/
+
+#ignore batch script
+*.bat
