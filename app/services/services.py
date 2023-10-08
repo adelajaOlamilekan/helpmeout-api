@@ -224,4 +224,4 @@ def is_logged_in(request: Request) -> bool:
     Returns:
     - A truthy of Falsy value indicating if user is currently logged in or not 
     """
-    return "username" in request.session and "logged_in" in request.session:
+    return "username" in request.session and "logged_in" in request.session
