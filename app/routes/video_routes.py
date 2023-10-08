@@ -50,7 +50,7 @@ def start_recording(
         "video_id": video_data.id,
     }
 
-    return json.dumps(response, indent=2)
+    return response
 
 
 @router.post("/upload-recording/")
@@ -94,11 +94,11 @@ def upload_video_blob(
     )
 
     # If it's the last blob, merge all blobs and process the video
-    if video.is_last:
+    if video_data.is_last:
         # Merge the blobs
         video.original_location = merge_blobs(video_data.user_id, video_data.video_id)
 
-        video_data.status = "completed"
+        video.status = "completed"
         db.commit()
         db.close()
 
@@ -117,7 +117,7 @@ def upload_video_blob(
             "thumbnail_url": f"/scre/api/thumbnail/{video_data.video_id}",
             "transcript_url": f"/scre/api/transcript/{video_data.video_id}",
         }
-        return json.dumps(response, indent=2)
+        return response
     db.close()
 
     return {"msg": "Chunk received successfully!"}
