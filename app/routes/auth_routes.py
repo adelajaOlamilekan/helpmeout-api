@@ -20,7 +20,22 @@ load_dotenv()
 
 
 @auth_router.post("/signup/", response_model=UserResponse)
-async def signup_user(user: UserAuthentication, db: Session = Depends(get_db)):
+async def signup_user(
+    user: UserAuthentication, db: Session = Depends(get_db)
+) -> UserResponse:
+    """
+    Registers a new user.
+
+    Args:
+        user (UserAuthentication): The user authentication data.
+        db (Session, optional): The db session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: If the username is not unique.
+
+    Returns:
+        UserResponse: The response object.
+    """
     try:
         # converting password to array of bytes
         hashed_password = user.password
@@ -44,14 +59,27 @@ async def signup_user(user: UserAuthentication, db: Session = Depends(get_db)):
             message="User registered successfully", status_code=201, data=None
         )
 
-    except IntegrityError:
-        raise HTTPException(status_code=400, detail="Username is not unique")
+    except IntegrityError as err:
+        raise HTTPException(
+            status_code=400, detail="Username is not unique"
+        ) from err
 
 
 @auth_router.post("/login/", response_model=UserResponse)
 async def login_user(
     user: UserAuthentication, request: Request, db: Session = Depends(get_db)
-):
+) -> UserResponse:
+    """
+    Logs in a user.
+
+    Args:
+        user (UserAuthentication): The user authentication data.
+        request (Request): The request object.
+        db (Session, optional): The db session. Defaults to Depends(get_db).
+
+    Returns:
+        UserResponse: The response object.
+    """
     # checking if the user is currently logged in
     user_is_loggedin = is_logged_in(request)
 
@@ -92,17 +120,29 @@ async def login_user(
 
 
 @auth_router.post("/logout/")
-async def logout_user(request: Request, db: Session = Depends(get_db)):
+async def logout_user(
+    request: Request, _: Session = Depends(get_db)
+) -> LogoutResponse:
+    """
+    Logs out a user.
+
+    Args:
+        request (Request): The request object.
+        _ (Session, optional): The db session. Defaults to Depends(get_db).
+
+    Returns:
+        LogoutResponse: The response object.
+    """
     # checking if the user is currently logged in
     user_is_loggedin = is_logged_in(request)
 
-    if user_is_loggedin:
-        del request.session["username"]
-        del request.session["logged_in"]
-
-        return LogoutResponse(
-            status_code=200, message="User Logged out successfully"
-        )
-    else:
+    if not user_is_loggedin:
         # User is not logged in, return an error
         return LogoutResponse(status_code=401, message="User not logged in")
+
+    del request.session["username"]
+    del request.session["logged_in"]
+
+    return LogoutResponse(
+        status_code=200, message="User Logged out successfully"
+    )

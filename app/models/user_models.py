@@ -13,12 +13,10 @@ class User(Base):
     username: str = Column(
         String, index=True, unique=True, nullable=False, default=None
     )
-    # email: str = Column(String, nullable=True)
     hashed_password: str = Column(String, unique=True, nullable=False)
     created_date: DateTime = Column(DateTime, server_default=func.now())
     updated_date: DateTime = Column(DateTime, onupdate=func.now())
     is_deleted: bool = Column(Boolean, default=False)
-    # logged_in: bool = Column(Boolean, default=True)
 
 
 class UserRequest(BaseModel):

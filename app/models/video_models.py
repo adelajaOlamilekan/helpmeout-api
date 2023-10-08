@@ -16,7 +16,6 @@ class Video(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-    # user_id: str = Column(String, nullable=True)
     created_date: DateTime = Column(DateTime, default=datetime.utcnow)
     original_location: str = Column(String, nullable=True)
     compressed_location: str = Column(String, nullable=True)

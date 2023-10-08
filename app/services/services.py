@@ -61,9 +61,6 @@ def process_video(
         compress_video(file_location, compressed_location)
         extract_thumbnail(compressed_location, thumbnail_location)
     except Exception as err:
-        # Delete the uploaded file if an error occurs
-        # if os.path.exists(file_location):
-        #     os.remove(file_location)
         # Update the video status to `failed`
         video.status = "failed"
         raise HTTPException(status_code=500, detail=str(err)) from err
@@ -79,6 +76,13 @@ def process_video(
 
 
 def extract_audio(input_path: str, output_path: str) -> None:
+    """
+    Extracts the audio from a video using ffmpeg.
+
+    Args:
+        input_path (str): The path to the input video.
+        output_path (str): The path to the output audio.
+    """
     command = [
         "ffmpeg",
         "-i",
@@ -233,11 +237,6 @@ def merge_blobs(username: str, video_id: str) -> str:
             with open(blob_file, "rb") as f:
                 merged_file.write(f.read())
 
-    # Optionally, remove the blobs
-    # for blob in blob_files:
-    #     os.remove(blob)
-    # shutil.rmtree(temp_video_dir)
-
     return merged_video_path
 
 
@@ -254,11 +253,26 @@ def generate_id():
 
 
 def get_transcript(audio_file: str, output_path: str) -> None:
+    """
+    Generate a transcript for an audio file using Deepgram's API.
+
+    Args:
+        audio_file (str): The path to the audio file.
+        output_path (str): The path to the output transcript file.
+    """
     # Call the async function
     asyncio.run(generate_transcript(audio_file, output_path, DEEPGRAM_API_KEY))
 
 
 async def generate_transcript(audio_file: str, save_to: str, api_key: str):
+    """
+    Generate a transcript for an audio file using Deepgram's API.
+
+    Args:
+        audio_file (str): The path to the audio file.
+        save_to (str): The path to the output transcript file.
+        api_key (str): The Deepgram API key.
+    """
     dg_client = Deepgram(api_key)
 
     params = {"punctuate": True, "tier": "enhanced"}
@@ -268,8 +282,6 @@ async def generate_transcript(audio_file: str, save_to: str, api_key: str):
         response = await dg_client.transcription.prerecorded(
             source, params, timeout=120
         )
-
-        print(response)
 
         # Write the response to a file
         with open(save_to, "w", encoding="utf-8") as audio:
@@ -281,9 +293,11 @@ def is_logged_in(request: Request) -> bool:
      Checks if a user is currently logged in.
 
     Parameters:
-    - request: Holds the request metadata of a user when interacting with the app.
+        request: Holds the request metadata of a user when interacting with
+            the app.
 
     Returns:
-    - A truthy of Falsy value indicating if user is currently logged in or not
+        A truthy of Falsy value indicating if user is currently logged in or
+            not.
     """
     return "username" in request.session and "logged_in" in request.session
