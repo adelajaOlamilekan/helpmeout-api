@@ -72,7 +72,7 @@ def process_video(
     video.transcript_location = transcript_location
     video.compressed_location = compressed_location
     video.thumbnail_location = thumbnail_location
-    video.status = "complete"
+    video.status = "completed"
 
     db.commit()
     db.close()
