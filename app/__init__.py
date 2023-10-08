@@ -29,8 +29,8 @@ def create_app():
 
     SECRET_KEY = os.environ.get('SECRET_KEY') or None
 
-    if SECRET_KEY is None:
-        raise 'Missing SECRET_KEY'
-    app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+    # if SECRET_KEY is None:
+    #     raise 'Missing SECRET_KEY'
+    # app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
     return app
