@@ -113,9 +113,6 @@ def upload_video_blob(
         response = {
             "message": "Chunks received successfully and video is being processed",
             "video_id": video_data.video_id,
-            "video_url": f"/scre/api/recording/{video_data.video_id}",
-            "thumbnail_url": f"/scre/api/thumbnail/{video_data.video_id}",
-            "transcript_url": f"/scre/api/transcript/{video_data.video_id}",
         }
         return response
     db.close()
