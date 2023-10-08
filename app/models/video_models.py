@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel
-from sqlalchemy import Column, Enum, String, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, Enum, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -11,9 +11,9 @@ class Video(Base):
     __tablename__ = "videos"
 
     id: str = Column(String, primary_key=True, unique=True, nullable=False)
-    user_id: int = Column(
-        Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
+    username: str = Column(
+        String,
+        ForeignKey("users.username", ondelete="CASCADE"),
         nullable=False,
     )
     created_date: DateTime = Column(DateTime, default=datetime.utcnow)
@@ -35,7 +35,7 @@ class Video(Base):
 
 
 class VideoBlob(BaseModel):
-    user_id: int
+    username: str
     video_id: str
     blob_index: int
     blob_object: bytes

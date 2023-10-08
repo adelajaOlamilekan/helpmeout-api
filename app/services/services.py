@@ -15,9 +15,8 @@ from app.settings import VIDEO_DIR, DEEPGRAM_API_KEY
 
 
 def process_video(
-    video_id: int,
+    video_id: str,
     file_location: str,
-    filename: str,
     username: str,
 ):
     """
@@ -26,7 +25,7 @@ def process_video(
     Args:
         video_id (int): The ID of the video.
         file_location (str): The location of the video file.
-        filename (str): The name of the video file.
+        video_id (str): The name of the video file.
 
     Raises:
         HTTPException: If an error occurs.
@@ -38,17 +37,17 @@ def process_video(
     video = db.query(Video).filter(Video.id == video_id).first()
 
     # Generate compressed and thumbnail filenames
-    audio = f"audio_{filename}.mp3"
-    audio_location = os.path.join(VIDEO_DIR, username, filename, audio)
+    audio = f"audio_{video_id}.mp3"
+    audio_location = os.path.join(VIDEO_DIR, username, video_id, audio)
     audio_location = os.path.abspath(audio_location)
-    trans = f"transcript_{filename}.json"
-    transcript_location = os.path.join(VIDEO_DIR, username, filename, trans)
+    trans = f"transcript_{video_id}.json"
+    transcript_location = os.path.join(VIDEO_DIR, username, video_id, trans)
     transcript_location = os.path.abspath(transcript_location)
-    comp = f"compressed_{filename}.mp4"
-    compressed_location = os.path.join(VIDEO_DIR, username, filename, comp)
+    comp = f"compressed_{video_id}.mp4"
+    compressed_location = os.path.join(VIDEO_DIR, username, video_id, comp)
     compressed_location = os.path.abspath(compressed_location)
-    thumb = f"thumbnail_{filename}.jpg"
-    thumbnail_location = os.path.join(VIDEO_DIR, username, filename, thumb)
+    thumb = f"thumbnail_{video_id}.jpg"
+    thumbnail_location = os.path.join(VIDEO_DIR, username, video_id, thumb)
     thumbnail_location = os.path.abspath(thumbnail_location)
 
     try:
