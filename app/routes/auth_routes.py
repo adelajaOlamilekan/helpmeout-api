@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.sql.expression import select
 from sqlalchemy.exc import IntegrityError
 from app.models.user_models import UserRequest, User, UserResponse, UserAuthentication, LogoutResponse
+from app.services.services import is_loggedin
 
 import bcrypt
 import os 
@@ -110,8 +111,13 @@ async def signup_user(user: UserAuthentication, db: Session= Depends(get_db)):
 async def login_user(user: UserAuthentication, request: Request, db: Session= Depends(get_db)):
     
     #checking if the user is currently logged in
-    if "username" in request.session and "logged_in" in request.session:
+    user_is_loggedin = is_loggedin(request)
+
+    if user_is_loggedin:
         return UserResponse(status_code=401, message="User Already Logged in", data=None)
+    
+    # if "username" in request.session and "logged_in" in request.session:
+    #     return UserResponse(status_code=401, message="User Already Logged in", data=None)
 
     needed_user = db.query(User).filter_by(username=user.username).first()
 
@@ -144,7 +150,10 @@ async def login_user(user: UserAuthentication, request: Request, db: Session= De
 @auth_router.post("/logout")
 async def logout_user(request: Request, db: Session = Depends(get_db)):
 
-    if "username" in request.session and "logged_in" in request.session:
+    #checking if the user is currently logged in
+    user_is_loggedin = is_loggedin(request)
+
+    if user_is_loggedin:
         del request.session["username"]
         del request.session["logged_in"]
 

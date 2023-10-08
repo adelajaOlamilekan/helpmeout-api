@@ -4,6 +4,7 @@ import subprocess
 import nanoid
 
 from fastapi import HTTPException
+from fastapi import Request
 
 from app.database import get_db
 from app.models.video_models import Video
@@ -212,3 +213,18 @@ def generate_id():
     
     ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     return str(nanoid.generate(size=10, alphabet=ALPHABET))
+
+def is_loggedin(request: Request) -> bool:
+    """
+     Checks if a user is currently logged in.
+
+    Parameters:
+    - request: Holds the request metadata of a user when interacting with the app.
+
+    Returns:
+    - A truthy of Falsy value indicating if user is currently logged in or not 
+    """
+    if "username" in request.session and "logged_in" in request.session:
+        return True
+    else:
+        return False
