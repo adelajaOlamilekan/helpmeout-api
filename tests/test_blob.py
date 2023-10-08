@@ -44,12 +44,12 @@ def send_blob(video_id, blob, blob_index, is_last):
 def main():
     with open(VIDEO_FILE_PATH, "rb") as f:
         blob_id = 1
+        video_id = start_record(USER_ID)
         while True:
             blob = f.read(BLOB_SIZE)
             if not blob:
                 break
             is_last = len(blob) < BLOB_SIZE
-            video_id = start_record(USER_ID)
             send_blob(video_id, blob, blob_id, is_last)
             blob_id += 1
 
