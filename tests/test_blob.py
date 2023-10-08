@@ -3,35 +3,71 @@ import base64
 import requests
 
 # Configuration
-VIDEO_FILE_PATH = "/home/cofucan/Videos/test_rec.mkv"
-ENDPOINT_URL = "http://127.0.0.1:8000/srce/api/upload_blob/"
+VIDEO_FILE_PATH = "/home/destinedcodes/video.mp4"
+START_URL = "http://127.0.0.1:8000/srce/api/start-recording/"
+UPLOAD_URL = "http://127.0.0.1:8000/srce/api/upload-recording/"
 BLOB_SIZE = 1 * 1024 * 1024  # 1MB by default. Adjust as needed.
-USERNAME = "cofucan"
+USER_ID = "cofucan"
 FILENAME = "videoA"  # This should be unique for each video.
 
 
-def send_blob(blob, blob_id, is_last):
+def start_record(user_id: str):
+    """
+    Start a new recording session and return the video ID.
+    
+    :param user_id: The user ID.
+    :return: The video ID.
+    """
     data = {
-        "blobId": str(blob_id),
-        "username": USERNAME,
-        "filename": FILENAME,
-        "blobObject": base64.b64encode(blob).decode("utf-8"),
+        "user_id": user_id,
+    }
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(START_URL, json=data, headers=headers)
+    # Check if the response is in JSON format
+    if response.status_code == 200:
+        response_data = response.json()
+        video_id = response_data.get("video_id")
+        if video_id:
+            return video_id
+        else:
+            print("Video ID not found in the response.")
+    else:
+        print(f"Request failed with status code: {response.status_code}")
+
+def send_blob(video_id: str, blob: bytes, blob_index: int, is_last: bool):
+    """
+    Send a blob to the server.
+
+    :param video_id: The video ID.
+    :param blob: The blob to send.
+    :param blob_index: The blob index.
+    :param is_last: Whether this is the last blob.
+    """
+    data = {
+        "blob_index": int(blob_index),
+        "user_id": USER_ID,
+        "video_id": video_id,
+        "blob_object": base64.b64encode(blob).decode("utf-8"),
         "is_last": str(is_last),
     }
     headers = {"Content-Type": "application/json"}
-    response = requests.post(ENDPOINT_URL, json=data, headers=headers)
+    response = requests.post(UPLOAD_URL, json=data, headers=headers)
     print(response.text)
 
 
 def main():
+    """
+    Main function.
+    """
     with open(VIDEO_FILE_PATH, "rb") as f:
         blob_id = 1
+        video_id = start_record(USER_ID)
         while True:
             blob = f.read(BLOB_SIZE)
             if not blob:
                 break
             is_last = len(blob) < BLOB_SIZE
-            send_blob(blob, blob_id, is_last)
+            send_blob(video_id, blob, blob_id, is_last)
             blob_id += 1
 
 
