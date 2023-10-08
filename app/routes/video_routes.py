@@ -145,7 +145,7 @@ def get_videos(user_id: str, db: Session = Depends(get_db)):
     """
     videos = db.query(Video).filter(Video.user_id == user_id).all()
     db.close()
-    return json.dumps(videos, indent=2)
+    return videos
 
 
 @router.get("/recording/{video_id}")
