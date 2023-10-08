@@ -214,7 +214,7 @@ def generate_id():
     ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     return str(nanoid.generate(size=10, alphabet=ALPHABET))
 
-def is_loggedin(request: Request) -> bool:
+def is_logged_in(request: Request) -> bool:
     """
      Checks if a user is currently logged in.
 
@@ -224,7 +224,4 @@ def is_loggedin(request: Request) -> bool:
     Returns:
     - A truthy of Falsy value indicating if user is currently logged in or not 
     """
-    if "username" in request.session and "logged_in" in request.session:
-        return True
-    else:
-        return False
+    return "username" in request.session and "logged_in" in request.session:
