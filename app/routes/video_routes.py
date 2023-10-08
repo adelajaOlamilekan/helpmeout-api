@@ -32,7 +32,7 @@ def start_recording(
     """
     Start the recording process.
     Args:
-        user_id (str): The user ID.
+        username (str): The user ID.
         Db (Session, optional): The database session. Default
             Depends(get_db).
 
@@ -42,21 +42,28 @@ def start_recording(
     Raises:
         None
     """
-    user_id = user_data.get("user_id")
+    username = user_data.get("username")
+
+    # Check if the user exists
+    if not db.query(User).filter(User.username == username).first():
+        new_user = User(username=username, hashed_password="asdfghjk")
+
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
     video_data = Video(
         id=generate_id(),
-        user_id=user_id,
+        username=username,
     )
 
     db.add(video_data)
     db.commit()
 
-    response = {
+    return {
         "message": "Recording started successfully",
         "video_id": video_data.id,
     }
-
-    return response
 
 
 @router.post("/upload-blob/")
@@ -84,7 +91,7 @@ def upload_video_blob(
     # Query the database for the video id
     video = db.query(Video).filter(Video.id == video_data.video_id).first()
 
-    user = db.query(User).filter(User.id == video_data.user_id).first()
+    user = db.query(User).filter(User.username == video_data.username).first()
 
     # If the video is not found, raise an exception
     if not video:
@@ -95,7 +102,7 @@ def upload_video_blob(
 
     # Save the blob
     _ = save_blob(
-        user.username,
+        video_data.username,
         video_data.video_id,
         video_data.blob_index,
         blob_data,
@@ -105,7 +112,7 @@ def upload_video_blob(
     if video_data.is_last:
         # Merge the blobs
         video.original_location = merge_blobs(
-            user.username, video_data.video_id
+            video_data.username, video_data.video_id
         )
 
         video.status = "completed"
@@ -116,8 +123,7 @@ def upload_video_blob(
             process_video,
             video_data.video_id,
             video.original_location,
-            video.id,
-            user.username,
+            video_data.username,
         )
 
         response = {
