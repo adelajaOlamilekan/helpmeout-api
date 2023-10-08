@@ -1,7 +1,6 @@
 import uvicorn
 from app import create_app as helpmeout
 
-
 # Create the app
 app = helpmeout()
 

@@ -5,7 +5,6 @@ from sqlalchemy import Column, Enum, String, DateTime
 
 from app.database import Base
 
-
 class Video(Base):
     __tablename__ = "videos"
 
