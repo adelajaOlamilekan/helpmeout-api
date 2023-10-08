@@ -12,8 +12,14 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.user_models import User
 from app.models.video_models import Video, VideoBlob
-from app.services.services import save_blob, merge_blobs, generate_id
+from app.services.services import (
+    save_blob,
+    merge_blobs,
+    generate_id,
+    process_video,
+)
 
 router = APIRouter(prefix="/srce/api")
 
@@ -53,7 +59,7 @@ def start_recording(
     return response
 
 
-@router.post("/upload-recording/")
+@router.post("/upload-blob/")
 def upload_video_blob(
     background_tasks: BackgroundTasks,
     video_data: VideoBlob,
@@ -64,7 +70,7 @@ def upload_video_blob(
 
     Args:
         background_tasks (BackgroundTasks): The background tasks object.
-        video_data (VideoBlob): The json data cintaining video information
+        video_data (VideoBlob): The json data containing video information
         Db (Session, optional): The database session.
             Defaults to Depends(get_db).
 
@@ -78,6 +84,8 @@ def upload_video_blob(
     # Query the database for the video id
     video = db.query(Video).filter(Video.id == video_data.video_id).first()
 
+    user = db.query(User).filter(User.id == video_data.user_id).first()
+
     # If the video is not found, raise an exception
     if not video:
         raise HTTPException(status_code=404, detail="Video not found.")
@@ -87,7 +95,7 @@ def upload_video_blob(
 
     # Save the blob
     _ = save_blob(
-        video_data.user_id,
+        user.username,
         video_data.video_id,
         video_data.blob_index,
         blob_data,
@@ -96,25 +104,29 @@ def upload_video_blob(
     # If it's the last blob, merge all blobs and process the video
     if video_data.is_last:
         # Merge the blobs
-        video.original_location = merge_blobs(video_data.user_id, video_data.video_id)
+        video.original_location = merge_blobs(
+            user.username, video_data.video_id
+        )
 
         video.status = "completed"
         db.commit()
-        db.close()
 
         # Process the video in the background
-        # background_tasks.add_task(
-        #     process_video,
-        #     video_data.id,
-        #     merged_video_path,
-        #     video_blob.filename,
-        # )
+        background_tasks.add_task(
+            process_video,
+            video_data.video_id,
+            video.original_location,
+            video.id,
+            user.username,
+        )
 
         response = {
-            "message": "Chunks received successfully and video is being processed",
+            "message": "Blobs received successfully, video is being processed",
             "video_id": video_data.video_id,
         }
-        return response
+        db.close()
+        return json.dumps(response, indent=2)
+
     db.close()
 
     return {"msg": "Chunk received successfully!"}
@@ -133,7 +145,7 @@ def get_videos(user_id: str, db: Session = Depends(get_db)):
     """
     videos = db.query(Video).filter(Video.user_id == user_id).all()
     db.close()
-    return json.dumps(videos, indent=2)
+    return videos
 
 
 @router.get("/recording/{video_id}")
