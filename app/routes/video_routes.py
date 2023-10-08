@@ -123,7 +123,7 @@ def upload_video_blob(
     return {"msg": "Chunk received successfully!"}
 
 
-@router.get("/videos/user/{user_id}")
+@router.get("/recording/user/{user_id}")
 def get_videos(user_id: str, db: Session = Depends(get_db)):
     """
     Returns a list of videos associated with the given user_id.
@@ -139,7 +139,7 @@ def get_videos(user_id: str, db: Session = Depends(get_db)):
     return json.dumps(videos, indent=2)
 
 
-@router.get("/video/{video_id}")
+@router.get("/recording/{video_id}")
 def stream_video(video_id: str, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.
