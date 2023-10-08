@@ -11,7 +11,16 @@ USERNAME = "cofucan"
 FILENAME = "videoA"  # This should be unique for each video.
 
 
-def get_video_id(username):
+def get_video_id(username: str) -> str:
+    """
+    Get the video ID for a user.
+
+    Args:
+        username (str): The username
+
+    Returns:
+        str: Th video id
+    """
     data = {"username": username}
 
     headers = {"Content-Type": "application/json"}
@@ -25,7 +34,16 @@ def get_video_id(username):
     return res_data["video_id"]
 
 
-def send_blob(video_id, blob, blob_id, is_last):
+def send_blob(video_id: str, blob: bytes, blob_id: int, is_last: bool):
+    """
+    Sends the video in blobs
+
+    Args:
+        video_id (str): The id of the video
+        blob (bytes): The blob in bytes
+        blob_id (int): The index of the blob
+        is_last (bool): Whether the blob is the last one
+    """
     data = {
         "username": USERNAME,
         "video_id": video_id,
@@ -41,6 +59,7 @@ def send_blob(video_id, blob, blob_id, is_last):
 
 
 def main():
+    """ The main function """
     video_id = get_video_id("user10")
     with open(VIDEO_FILE_PATH, "rb") as f:
         blob_id = 1
