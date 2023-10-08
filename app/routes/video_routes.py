@@ -56,7 +56,7 @@ def start_recording(
         "video_id": video_data.id,
     }
 
-    return json.dumps(response, indent=2)
+    return response
 
 
 @router.post("/upload-blob/")
@@ -123,18 +123,16 @@ def upload_video_blob(
         response = {
             "message": "Blobs received successfully, video is being processed",
             "video_id": video_data.video_id,
-            "video_url": f"/scre/api/recording/{video_data.video_id}",
-            "thumbnail_url": f"/scre/api/thumbnail/{video_data.video_id}",
-            "transcript_url": f"/scre/api/transcript/{video_data.video_id}",
         }
         db.close()
         return json.dumps(response, indent=2)
+
     db.close()
 
     return {"msg": "Chunk received successfully!"}
 
 
-@router.get("/videos/user/{user_id}")
+@router.get("/recording/user/{user_id}")
 def get_videos(user_id: str, db: Session = Depends(get_db)):
     """
     Returns a list of videos associated with the given user_id.
@@ -150,7 +148,7 @@ def get_videos(user_id: str, db: Session = Depends(get_db)):
     return json.dumps(videos, indent=2)
 
 
-@router.get("/video/{video_id}")
+@router.get("/recording/{video_id}")
 def stream_video(video_id: str, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.

@@ -18,10 +18,14 @@ class User(Base):
     created_date: DateTime = Column(DateTime, server_default=func.now())
     updated_date: DateTime = Column(DateTime, onupdate=func.now())
     is_deleted: bool = Column(Boolean, default=False)
+    # logged_in: bool = Column(Boolean, default=True)
 
 
 class UserRequest(BaseModel):
     username: str
+
+
+class UserAuthentication(UserRequest):
     password: str
 
 
@@ -29,3 +33,8 @@ class UserResponse(BaseModel):
     message: str
     status_code: int
     data: Optional[dict] = None
+
+
+class LogoutResponse(BaseModel):
+    message: str
+    status_code: int

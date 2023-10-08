@@ -26,4 +26,9 @@ uvloop==0.17.0
 watchfiles==0.20.0
 websockets==11.0.3
 bcrypt==4.0.1
-
+itsdangerous==2.1.2
+authlib==1.2.1
+social-auth-app-django
+authlib
+cffi
+httpx

@@ -7,6 +7,7 @@ import subprocess
 import nanoid
 from deepgram import Deepgram
 from fastapi import HTTPException
+from fastapi import Request
 
 from app.database import get_db
 from app.models.video_models import Video
@@ -273,3 +274,16 @@ async def generate_transcript(audio_file: str, save_to: str, api_key: str):
         # Write the response to a file
         with open(save_to, "w", encoding="utf-8") as audio:
             json.dump(response, audio)
+
+
+def is_logged_in(request: Request) -> bool:
+    """
+     Checks if a user is currently logged in.
+
+    Parameters:
+    - request: Holds the request metadata of a user when interacting with the app.
+
+    Returns:
+    - A truthy of Falsy value indicating if user is currently logged in or not
+    """
+    return "username" in request.session and "logged_in" in request.session
