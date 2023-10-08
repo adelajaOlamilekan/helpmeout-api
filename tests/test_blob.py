@@ -11,7 +11,13 @@ USER_ID = "cofucan"
 FILENAME = "videoA"  # This should be unique for each video.
 
 
-def start_record(user_id):
+def start_record(user_id: str):
+    """
+    Start a new recording session and return the video ID.
+    
+    :param user_id: The user ID.
+    :return: The video ID.
+    """
     data = {
         "user_id": user_id,
     }
@@ -28,7 +34,15 @@ def start_record(user_id):
     else:
         print(f"Request failed with status code: {response.status_code}")
 
-def send_blob(video_id, blob, blob_index, is_last):
+def send_blob(video_id: str, blob: bytes, blob_index: int, is_last: bool):
+    """
+    Send a blob to the server.
+
+    :param video_id: The video ID.
+    :param blob: The blob to send.
+    :param blob_index: The blob index.
+    :param is_last: Whether this is the last blob.
+    """
     data = {
         "blob_index": int(blob_index),
         "user_id": USER_ID,
@@ -42,6 +56,9 @@ def send_blob(video_id, blob, blob_index, is_last):
 
 
 def main():
+    """
+    Main function.
+    """
     with open(VIDEO_FILE_PATH, "rb") as f:
         blob_id = 1
         video_id = start_record(USER_ID)
