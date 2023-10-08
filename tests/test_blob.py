@@ -18,8 +18,9 @@ def get_video_id(user_id):
     response = requests.post(
         GET_VIDIO_ID_URL, json=data, headers=headers, timeout=200
     )
+    print(response.text)
     res_data = json.loads(response.text)
-    res_data = eval(res_data)
+    # res_data = eval(res_data)
     print(f"Video_id: {res_data['video_id']}")
     return res_data["video_id"]
 
