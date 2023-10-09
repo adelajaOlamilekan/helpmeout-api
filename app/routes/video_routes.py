@@ -59,9 +59,11 @@ def start_recording(
         db.commit()
         db.refresh(new_user)
 
+    video_id = generate_id()
     video_data = Video(
-        id=generate_id(),
+        id=video_id,
         username=username,
+        title=f"Untitled Video {video_id}",
     )
 
     db.add(video_data)
@@ -187,8 +189,8 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
 
     return videos
 
-@router.get("/recording/user/{username}/{video_id}")
-def get_video(username: str, video_id: str, request: Request, db: Session = Depends(get_db)):
+@router.get("/recording/{video_id}")
+def get_video(video_id: str, request: Request, db: Session = Depends(get_db)):
     """
     Retrieve a specific video by its video ID.
 
@@ -223,13 +225,13 @@ def get_video(username: str, video_id: str, request: Request, db: Session = Depe
     return video
 
 
-@router.get("/recording/{video_id}.mp4")
+@router.get("/video/{video_id}.mp4")
 def stream_video(video_id: str, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.
 
     Parameters:
-        video_id (int): The ID of the video to be streamed.
+        video_id (str): The ID of the video to be streamed.
         db (Session, optional): The database session. Defaults to the
             result of the get_db function.
 
@@ -253,7 +255,7 @@ def get_transcript(video_id: str, db: Session = Depends(get_db)):
     Get the transcript for a video by its video ID.
 
     Parameters:
-        video_id (int): The ID of the video to be streamed.
+        video_id (str): The ID of the video to be streamed.
         db (Session, optional): The database session. Defaults to the
             result of the get_db function.
 
@@ -277,7 +279,7 @@ def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
     Get the thumbnail for a video by its video ID.
 
     Parameters:
-        video_id (int): The ID of the video to be streamed.
+        video_id (str): The ID of the video to be streamed.
         db (Session, optional): The database session. Defaults to the
             result of the get_db function.
 
@@ -294,6 +296,33 @@ def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Video not found.")
     return FileResponse(video.thumbnail_location, media_type="image/jpeg")
 
+@router.patch("/video/{video_id}")
+def update_title(video_id: str, title: str, db: Session = Depends(get_db)):
+    """
+    Updates the title of a video.
+
+    Parameters:
+        video_id (str): The ID of the video to be updated.
+        title (str): The new title of the video.
+        db (Session, optional): The database session. Defaults to the
+            result of the get_db function.
+
+    Returns:
+        dict: A dictionary with a single key "msg" and the value "Video
+            updated successfully!"
+
+    Raises:
+        HTTPException: If the video with the specified ID is not found
+            in the database.
+    """
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if not video:
+       raise HTTPException(status_code=404, detail="Video not found.")
+     video.title = title
+     db.commit()
+     db.close()
+    return {"msg": "Title updated successfully!"}
+    
 
 @router.delete("/video/{video_id}")
 def delete_video(video_id: str, db: Session = Depends(get_db)):
@@ -302,7 +331,7 @@ def delete_video(video_id: str, db: Session = Depends(get_db)):
     from the file system.
 
     Parameters:
-        video_id (int): The ID of the video to be deleted.
+        video_id (str): The ID of the video to be deleted.
         db (Session, optional): The database session.
             Defaults to the result of the `get_db` function.
 
