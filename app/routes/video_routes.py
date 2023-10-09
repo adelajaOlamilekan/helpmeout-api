@@ -296,7 +296,7 @@ def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Video not found.")
     return FileResponse(video.thumbnail_location, media_type="image/jpeg")
 
-@router.put("/video/{video_id}")
+@router.patch("/video/{video_id}")
 def update_title(video_id: str, title: str, db: Session = Depends(get_db)):
     """
     Updates the title of a video.
