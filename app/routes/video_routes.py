@@ -23,6 +23,7 @@ from app.services.services import (
     merge_blobs,
     generate_id,
     process_video,
+    hash_password,
 )
 
 router = APIRouter(prefix="/srce/api")
@@ -50,7 +51,9 @@ def start_recording(
 
     # Check if the user exists
     if not db.query(User).filter(User.username == username).first():
-        new_user = User(username=username, hashed_password="asdfghjk")
+        password = "asdfghjk"
+        hashed_password = hash_password(password)
+        new_user = User(username=username, hashed_password=hashed_password)
 
         db.add(new_user)
         db.commit()

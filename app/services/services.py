@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 
+import bcrypt
 import nanoid
 from deepgram import Deepgram
 from fastapi import HTTPException
@@ -415,3 +416,13 @@ def is_logged_in(request: Request) -> bool:
         bool: True if the user is logged in, False otherwise.
     """
     return "username" in request.session and "logged_in" in request.session
+
+def hash_password(password: str):
+
+    pw_bytes = password.encode("utf-8")
+
+    # generating the salt
+    salt = bcrypt.gensalt()
+
+    # Hashing the password
+    return  bcrypt.hashpw(pw_bytes, salt)
