@@ -1,12 +1,19 @@
+""" Initializes the FastAPI app. """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.video_routes import router
-from app.routes.auth_routes import auth_router
 from starlette.middleware.sessions import SessionMiddleware
 
+from app.routes.video_routes import router
+from app.routes.auth_routes import auth_router
 
 
-def create_app():
+def create_app() -> FastAPI:
+    """
+    Creates the FastAPI app.
+
+    Returns:
+        FastAPI: The FastAPI app.
+    """
     # Create the FastAPI app
     app = FastAPI()
 

@@ -167,8 +167,8 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
             username, with downloadable URLs instead of absolute paths.
     """
     if not is_logged_in(request):
-         return LogoutResponse(status_code=401, message="User not logged in")
-    
+        return LogoutResponse(status_code=401, message="User not logged in")
+
     videos = db.query(Video).filter(Video.username == username).all()
     db.close()
 
@@ -187,8 +187,43 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
 
     return videos
 
+@router.get("/recording/user/{username}/{video_id}")
+def get_video(username: str, video_id: str, request: Request, db: Session = Depends(get_db)):
+    """
+    Retrieve a specific video by its video ID.
 
-@router.get("/recording/{video_id}")
+    Parameters:
+        username (str): The username associated with the video.
+        video_id (str): The unique identifier of the video to retrieve.
+        db (Session): The database session.
+
+    Returns:
+        Video: The Video object corresponding to the provided video_id.
+
+    Raises:
+        HTTPException(404): If the video with the given video_id is not found.
+    """
+
+    video = db.query(Video).filter(Video.id == video_id).first()
+    db.close()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    # Replace the absolute paths with downloadable URLs
+    video.original_location = str(request.url_for(
+        "stream_video", video_id=video_id
+    ))
+    video.thumbnail_location = str(request.url_for(
+        "get_thumbnail", video_id=video_id
+    ))
+    video.transcript_location = str(request.url_for(
+        "get_transcript", video_id=video_id
+    ))
+
+    return video
+
+
+@router.get("/recording/{video_id}.mp4")
 def stream_video(video_id: str, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.
@@ -212,7 +247,7 @@ def stream_video(video_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Video not found.")
 
 
-@router.get("/recording/transcript/{video_id}")
+@router.get("/recording/transcript/{video_id}.json")
 def get_transcript(video_id: str, db: Session = Depends(get_db)):
     """
     Get the transcript for a video by its video ID.
@@ -236,7 +271,7 @@ def get_transcript(video_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Video not found.")
 
 
-@router.get("/recording/thumbnail/{video_id}")
+@router.get("/recording/thumbnail/{video_id}.jpeg")
 def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
     """
     Get the thumbnail for a video by its video ID.
