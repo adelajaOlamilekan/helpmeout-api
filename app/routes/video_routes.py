@@ -231,7 +231,7 @@ def stream_video(video_id: str, db: Session = Depends(get_db)):
     Stream a video by its video ID.
 
     Parameters:
-        video_id (int): The ID of the video to be streamed.
+        video_id (str): The ID of the video to be streamed.
         db (Session, optional): The database session. Defaults to the
             result of the get_db function.
 
@@ -255,7 +255,7 @@ def get_transcript(video_id: str, db: Session = Depends(get_db)):
     Get the transcript for a video by its video ID.
 
     Parameters:
-        video_id (int): The ID of the video to be streamed.
+        video_id (str): The ID of the video to be streamed.
         db (Session, optional): The database session. Defaults to the
             result of the get_db function.
 
@@ -279,7 +279,7 @@ def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
     Get the thumbnail for a video by its video ID.
 
     Parameters:
-        video_id (int): The ID of the video to be streamed.
+        video_id (str): The ID of the video to be streamed.
         db (Session, optional): The database session. Defaults to the
             result of the get_db function.
 
@@ -302,7 +302,7 @@ def update_title(video_id: str, title: str, db: Session = Depends(get_db)):
     Updates the title of a video.
 
     Parameters:
-        video_id (int): The ID of the video to be updated.
+        video_id (str): The ID of the video to be updated.
         title (str): The new title of the video.
         db (Session, optional): The database session. Defaults to the
             result of the get_db function.
@@ -331,7 +331,7 @@ def delete_video(video_id: str, db: Session = Depends(get_db)):
     from the file system.
 
     Parameters:
-        video_id (int): The ID of the video to be deleted.
+        video_id (str): The ID of the video to be deleted.
         db (Session, optional): The database session.
             Defaults to the result of the `get_db` function.
 
