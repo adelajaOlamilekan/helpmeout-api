@@ -315,15 +315,14 @@ def update_title(video_id: str, title: str, db: Session = Depends(get_db)):
         HTTPException: If the video with the specified ID is not found
             in the database.
     """
-    if video := db.query(Video).filter(Video.id == video_id).first():
-        video.title = title
-        db.commit()
-        db.close()
-
-        return {"msg": "Title updated successfully!"}
-
-    db.close()
-    raise HTTPException(status_code=404, detail="Video not found.")
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if not video:
+       raise HTTPException(status_code=404, detail="Video not found.")
+     video.title = title
+     db.commit()
+     db.close()
+    return {"msg": "Title updated successfully!"}
+    
 
 @router.delete("/video/{video_id}")
 def delete_video(video_id: str, db: Session = Depends(get_db)):
