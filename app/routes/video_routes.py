@@ -246,9 +246,9 @@ def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
     video = db.query(Video).filter(Video.id == video_id).first()
     db.close()
 
-    if video:
-        return FileResponse(video.thumbnail_location, media_type="image/jpeg")
-    raise HTTPException(status_code=404, detail="Video not found.")
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found.")
+    return FileResponse(video.thumbnail_location, media_type="image/jpeg")
 
 
 @router.delete("/video/{video_id}")
