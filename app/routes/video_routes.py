@@ -166,15 +166,15 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
     # Replace the absolute paths with downloadable URLs
     for video in videos:
         video_id = video.id
-        video.original_location = request.url_for(
+        video.original_location = str(request.url_for(
             "stream_video", video_id=video_id
-        )
-        video.thumbnail_location = request.url_for(
+        ))
+        video.thumbnail_location = str(request.url_for(
             "get_thumbnail", video_id=video_id
-        )
-        video.transcript_location = request.url_for(
+        ))
+        video.transcript_location = str(request.url_for(
             "get_transcript", video_id=video_id
-        )
+        ))
 
     return videos
 
