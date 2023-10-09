@@ -71,6 +71,7 @@ def start_recording(
 @router.post("/upload-blob/")
 def upload_video_blob(
     background_tasks: BackgroundTasks,
+    request: Request,
     video_data: VideoBlob,
     db: Session = Depends(get_db),
 ):
@@ -131,9 +132,11 @@ def upload_video_blob(
             video_data.username,
         )
 
+        vid_url = request.url_for("stream_video", video_id=video_data.video_id)
         response = {
             "message": "Blobs received successfully, video is being processed",
             "video_id": video_data.video_id,
+            "_url": str(vid_url),
         }
         db.close()
         return json.dumps(response, indent=2)
