@@ -50,10 +50,10 @@ def process_video(
         os.path.join(VIDEO_DIR, username, video_id, transcript_filename)
     )
 
-    compressed_filename = f"compressed_{video_id}.mp4"
-    compressed_location = os.path.abspath(
-        os.path.join(VIDEO_DIR, username, video_id, compressed_filename)
-    )
+    # compressed_filename = f"compressed_{video_id}.mp4"
+    # compressed_location = os.path.abspath(
+    #     os.path.join(VIDEO_DIR, username, video_id, compressed_filename)
+    # )
 
     thumbnail_filename = f"thumbnail_{video_id}.jpg"
     thumbnail_location = os.path.abspath(
