@@ -326,16 +326,15 @@ async def generate_transcript(
 
         transcript_file = f"{save_to}.{file_format}"
 
-        if file_format == "srt":
-            transcript_file = convert_to_srt(response, transcript_file)
-        elif file_format == "json":
-            transcript_file = convert_to_json(response, transcript_file)
-        else:
+        if file_format not in ("srt", "json"):
             raise HTTPException(
                 status_code=400, detail="Unsupported file format"
             )
 
-    return transcript_file
+        if file_format == "srt":
+            return convert_to_srt(response, transcript_file)
+        elif file_format == "json":
+            return convert_to_json(response, transcript_file)
 
 
 def convert_to_srt(transcript_data: dict, output_path: str) -> str:
