@@ -346,7 +346,8 @@ def delete_video(video_id: str, db: Session = Depends(get_db)):
         HTTPException: If the video with the specified ID is not found
             in the database.
     """
-    if video := db.query(Video).filter(Video.id == video_id).first():
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if video:
         os.remove(video.original_location)
         if os.path.exists(video.thumbnail_location):
             os.remove(video.thumbnail_location)
