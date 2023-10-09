@@ -1,6 +1,5 @@
 import asyncio
 import glob
-import json
 import os
 import subprocess
 
@@ -40,7 +39,7 @@ def process_video(
     audio = f"audio_{video_id}.mp3"
     audio_location = os.path.join(VIDEO_DIR, username, video_id, audio)
     audio_location = os.path.abspath(audio_location)
-    trans = f"transcript_{video_id}.json"
+    trans = f"transcript_{video_id}.srt"
     transcript_location = os.path.join(VIDEO_DIR, username, video_id, trans)
     transcript_location = os.path.abspath(transcript_location)
     comp = f"compressed_{video_id}.mp4"
@@ -57,8 +56,8 @@ def process_video(
                 audio_location, transcript_location, DEEPGRAM_API_KEY
             )
         )
-        compress_video(file_location, compressed_location)
-        extract_thumbnail(compressed_location, thumbnail_location)
+        # compress_video(file_location, compressed_location)
+        # extract_thumbnail(compressed_location, thumbnail_location)
     except Exception as err:
         # Update the video status to `failed`
         video.status = "failed"
@@ -66,8 +65,8 @@ def process_video(
 
     # Update the video status and save the compressed and thumbnail locations
     video.transcript_location = transcript_location
-    video.compressed_location = compressed_location
-    video.thumbnail_location = thumbnail_location
+    # video.compressed_location = compressed_location
+    # video.thumbnail_location = thumbnail_location
     video.status = "completed"
 
     db.commit()
@@ -89,8 +88,8 @@ def extract_audio(input_path: str, output_path: str) -> None:
         "-vn",
         "-c:a",
         "libmp3lame",
-        "-q:a",
-        "2",
+        "-b:a",
+        "12k",
         output_path,
     ]
     subprocess.run(command, check=True)
@@ -272,19 +271,44 @@ async def generate_transcript(audio_file: str, save_to: str, api_key: str):
         save_to (str): The path to the output transcript file.
         api_key (str): The Deepgram API key.
     """
-    dg_client = Deepgram(api_key)
+    deepgram = Deepgram(api_key)
 
-    params = {"punctuate": True, "tier": "enhanced"}
+    params = {"punctuate": True, "tier": "enhanced", "utterances": True}
+    # params = {'smart_format': True, 'utterances': True}
     with open(audio_file, "rb") as audio:
         source = {"buffer": audio, "mimetype": "audio/mp3"}
 
-        response = await dg_client.transcription.prerecorded(
-            source, params, timeout=120
+        response: dict = deepgram.transcription.sync_prerecorded(
+            source, params
         )
+        # response = deepgram.extra.to_WebVTT(response)
+        deepgram.extra.to_SRT(response)
+        # response.to_SRT()
 
-        # Write the response to a file
-        with open(save_to, "w", encoding="utf-8") as audio:
-            json.dump(response, audio)
+        convert_to_srt(response, save_to)
+
+
+def convert_to_srt(transcript_data: dict, output_path: str) -> None:
+    data = transcript_data
+
+    # Extract transcript and word-level information
+    _ = data["results"]["channels"][0]["alternatives"][0]["transcript"]
+    words = data["results"]["channels"][0]["alternatives"][0]["words"]
+
+    # Create SRT caption file
+    srt_file = []
+
+    for i, word_info in enumerate(words):
+        start_time = round(word_info["start"], 3)
+        end_time = round(word_info["end"], 3)
+        word_text = word_info["punctuated_word"]
+
+        srt_entry = f"{i + 1}\n{start_time} --> {end_time}\n{word_text}\n"
+        srt_file.append(srt_entry)
+
+    # Save SRT caption file
+    with open(output_path, "w", encoding="utf-8") as file:
+        file.writelines(srt_file)
 
 
 def is_logged_in(request: Request) -> bool:
