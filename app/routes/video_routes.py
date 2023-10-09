@@ -177,17 +177,18 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
     # Replace the absolute paths with downloadable URLs
     for video in videos:
         video_id = video.id
-        video.original_location = str(request.url_for(
-            "stream_video", video_id=video_id
-        ))
-        video.thumbnail_location = str(request.url_for(
-            "get_thumbnail", video_id=video_id
-        ))
-        video.transcript_location = str(request.url_for(
-            "get_transcript", video_id=video_id
-        ))
+        video.original_location = str(
+            request.url_for("stream_video", video_id=video_id)
+        )
+        video.thumbnail_location = str(
+            request.url_for("get_thumbnail", video_id=video_id)
+        )
+        video.transcript_location = str(
+            request.url_for("get_transcript", video_id=video_id)
+        )
 
     return videos
+
 
 @router.get("/recording/{video_id}")
 def get_video(video_id: str, request: Request, db: Session = Depends(get_db)):
@@ -212,15 +213,15 @@ def get_video(video_id: str, request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Video not found")
 
     # Replace the absolute paths with downloadable URLs
-    video.original_location = str(request.url_for(
-        "stream_video", video_id=video_id
-    ))
-    video.thumbnail_location = str(request.url_for(
-        "get_thumbnail", video_id=video_id
-    ))
-    video.transcript_location = str(request.url_for(
-        "get_transcript", video_id=video_id
-    ))
+    video.original_location = str(
+        request.url_for("stream_video", video_id=video_id)
+    )
+    video.thumbnail_location = str(
+        request.url_for("get_thumbnail", video_id=video_id)
+    )
+    video.transcript_location = str(
+        request.url_for("get_transcript", video_id=video_id)
+    )
 
     return video
 
@@ -296,6 +297,7 @@ def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Video not found.")
     return FileResponse(video.thumbnail_location, media_type="image/jpeg")
 
+
 @router.patch("/video/{video_id}")
 def update_title(video_id: str, title: str, db: Session = Depends(get_db)):
     """
@@ -317,12 +319,13 @@ def update_title(video_id: str, title: str, db: Session = Depends(get_db)):
     """
     video = db.query(Video).filter(Video.id == video_id).first()
     if not video:
-       raise HTTPException(status_code=404, detail="Video not found.")
-     video.title = title
-     db.commit()
-     db.close()
+        raise HTTPException(status_code=404, detail="Video not found.")
+
+    video.title = title
+    db.commit()
+    db.close()
     return {"msg": "Title updated successfully!"}
-    
+
 
 @router.delete("/video/{video_id}")
 def delete_video(video_id: str, db: Session = Depends(get_db)):
