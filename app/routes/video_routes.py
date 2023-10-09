@@ -185,7 +185,7 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
     return videos
 
 @router.get("/recording/user/{username}/{video_id}")
-def get_video(username: str, video_id: str, db: Session = Depends(get_db)):
+def get_video(username: str, video_id: str, request: Request, db: Session = Depends(get_db)):
     """
     Retrieve a specific video by its video ID.
 
@@ -202,8 +202,21 @@ def get_video(username: str, video_id: str, db: Session = Depends(get_db)):
     """
 
     video = db.query(Video).filter(Video.id == video_id).first()
+    db.close()
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
+
+    # Replace the absolute paths with downloadable URLs
+    video.original_location = str(request.url_for(
+        "stream_video", video_id=video_id
+    ))
+    video.thumbnail_location = str(request.url_for(
+        "get_thumbnail", video_id=video_id
+    ))
+    video.transcript_location = str(request.url_for(
+        "get_transcript", video_id=video_id
+    ))
+
     return video
 
 
