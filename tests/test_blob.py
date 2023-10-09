@@ -1,3 +1,4 @@
+""" This module tests the blob upload functionality of the API. """
 import base64
 import json
 import requests

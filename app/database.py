@@ -1,3 +1,4 @@
+""" Database setup and connection """
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -27,7 +28,13 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 # Connect db session
-def get_db():
+def get_db() -> SessionLocal:
+    """
+    Connects to the database and returns the session
+
+    Yields:
+        SessionLocal: The database session
+    """
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:

@@ -1,3 +1,4 @@
+""" Video routes for the FastAPI application. """
 import base64
 import json
 import os

@@ -1,3 +1,4 @@
+""" The video models """""
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -8,20 +9,21 @@ from app.database import Base
 
 
 class Video(Base):
+    """ The video model """
     __tablename__ = "videos"
 
     id: str = Column(String, primary_key=True, unique=True, nullable=False)
-    username: str = Column(
+    username = Column(
         String,
         ForeignKey("users.username", ondelete="CASCADE"),
         nullable=False,
     )
-    created_date: DateTime = Column(DateTime, default=datetime.utcnow)
-    original_location: str = Column(String, nullable=True)
-    compressed_location: str = Column(String, nullable=True)
-    thumbnail_location: str = Column(String, nullable=True)
-    transcript_location: str = Column(String, nullable=True)
-    status: str = Column(
+    created_date = Column(DateTime, default=datetime.utcnow)
+    original_location = Column(String, nullable=True)
+    compressed_location = Column(String, nullable=True)
+    thumbnail_location = Column(String, nullable=True)
+    transcript_location = Column(String, nullable=True)
+    status = Column(
         Enum(
             "processing",
             "completed",
@@ -35,6 +37,7 @@ class Video(Base):
 
 
 class VideoBlob(BaseModel):
+    """ The video blob model """
     username: str
     video_id: str
     blob_index: int

@@ -1,3 +1,4 @@
+""" Main file for running the app. """
 import uvicorn
 from app import create_app as helpmeout
 

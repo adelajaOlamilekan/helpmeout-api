@@ -1,3 +1,4 @@
+""" User models. """
 from typing import Optional
 
 from pydantic import BaseModel
@@ -15,6 +16,7 @@ from app.database import Base
 
 
 class User(Base):
+    """ The user model """
     __tablename__ = "users"
 
     id: int = Column(Integer, primary_key=True, index=True)
@@ -33,19 +35,23 @@ class User(Base):
 
 
 class UserRequest(BaseModel):
+    """ The user request model """
     username: str
 
 
 class UserAuthentication(UserRequest):
+    """ The user authentication model """
     password: str
 
 
 class UserResponse(BaseModel):
+    """ The user response model """
     message: str
     status_code: int
     data: Optional[dict] = None
 
 
 class LogoutResponse(BaseModel):
+    """ The logout response model """
     message: str
     status_code: int
