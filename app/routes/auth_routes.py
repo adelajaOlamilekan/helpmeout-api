@@ -12,7 +12,7 @@ from app.models.user_models import (
     UserAuthentication,
     LogoutResponse,
 )
-from app.services.services import is_logged_in
+from app.services.services import is_logged_in, hash_password
 
 auth_router = APIRouter(prefix="/srce/api")
 
@@ -39,17 +39,9 @@ async def signup_user(
     """
     try:
         # converting password to array of bytes
-        hashed_password = user.password
+        hashed_password = hash_password(user.password)
 
-        pw_bytes = hashed_password.encode("utf-8")
-
-        # generating the salt
-        salt = bcrypt.gensalt()
-
-        # Hashing the password
-        pw_hash = bcrypt.hashpw(pw_bytes, salt)
-
-        new_user = User(username=user.username, hashed_password=pw_hash)
+        new_user = User(username=user.username, hashed_password=hashed_password)
 
         db.add(new_user)
         db.commit()
