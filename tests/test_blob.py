@@ -3,7 +3,7 @@ import json
 import requests
 
 # Configuration
-VIDEO_FILE_PATH = "/home/cofucan/Videos/test_rec.mkv"
+VIDEO_FILE_PATH = "/home/cofucan/Videos/proj_demo.mp4"
 GET_VIDIO_ID_URL = "http://127.0.0.1:8000/srce/api/start-recording/"
 ENDPOINT_URL = "http://127.0.0.1:8000/srce/api/upload-blob/"
 BLOB_SIZE = 1 * 1024 * 1024  # 1MB by default. Adjust as needed.
