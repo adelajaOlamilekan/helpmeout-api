@@ -15,7 +15,9 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user_models import User
+from app.services.services import is_logged_in
 from app.models.video_models import Video, VideoBlob
+from app.models.user_models import LogoutResponse
 from app.services.services import (
     save_blob,
     merge_blobs,
@@ -152,6 +154,7 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
     Returns a list of videos associated with the given username.
 
     Parameters:
+        request: The request object
         username (str): The username for which to retrieve the videos.
         request (Request): The FastAPI request object.
         db (Session): The database session.
@@ -160,6 +163,9 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
         List[Video]: A list of Video objects associated with the given
             username, with downloadable URLs instead of absolute paths.
     """
+    if not is_logged_in(request):
+         return LogoutResponse(status_code=401, message="User not logged in")
+    
     videos = db.query(Video).filter(Video.username == username).all()
     db.close()
 
