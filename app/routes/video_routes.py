@@ -7,13 +7,16 @@ from fastapi import (
     BackgroundTasks,
     Depends,
     HTTPException,
+    Request
 )
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user_models import User
+from app.services.services import is_logged_in
 from app.models.video_models import Video, VideoBlob
+from app.models.user_models import LogoutResponse
 from app.services.services import (
     save_blob,
     merge_blobs,
@@ -138,17 +141,24 @@ def upload_video_blob(
     return {"msg": "Chunk received successfully!"}
 
 
-@router.get("/recording/user/{user_id}")
-def get_videos(user_id: str, db: Session = Depends(get_db)):
+@router.get("/recording/user/")
+def get_videos(request: Request, db: Session = Depends(get_db)):
     """
     Returns a list of videos associated with the given user_id.
     Parameters:
+        request: The request object
         username (str): The username for which to retrieve the videos.
         db (Session): The database session.
     Returns:
         List[Video]: A list of Video objects associated with the given
             username.
     """
+    user_id = request.session.get("username")
+    print(user_id)
+    
+    if not is_logged_in(request):
+        return LogoutResponse(status_code=401, message="User not logged in")
+    
     videos = db.query(Video).filter(Video.user_id == user_id).all()
     db.close()
     return videos
