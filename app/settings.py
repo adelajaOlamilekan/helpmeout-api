@@ -1,3 +1,4 @@
+""" This file contains all the settings for the application. """
 from configparser import ConfigParser
 
 config = ConfigParser()

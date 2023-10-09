@@ -1,4 +1,6 @@
+""" The video models """""
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 from sqlalchemy import Column, Enum, String, DateTime, ForeignKey
@@ -8,6 +10,7 @@ from app.database import Base
 
 
 class Video(Base):
+    """ The video model """
     __tablename__ = "videos"
 
     id: str = Column(String, primary_key=True, unique=True, nullable=False)
@@ -16,11 +19,11 @@ class Video(Base):
         ForeignKey("users.username", ondelete="CASCADE"),
         nullable=False,
     )
-    created_date: DateTime = Column(DateTime, default=datetime.utcnow)
-    original_location: str = Column(String, nullable=True)
-    compressed_location: str = Column(String, nullable=True)
-    thumbnail_location: str = Column(String, nullable=True)
-    transcript_location: str = Column(String, nullable=True)
+    created_date: datetime = Column(DateTime, default=datetime.utcnow)
+    original_location: Optional[str] = Column(String, nullable=True)
+    compressed_location: Optional[str] = Column(String, nullable=True)
+    thumbnail_location: Optional[str] = Column(String, nullable=True)
+    transcript_location: Optional[str] = Column(String, nullable=True)
     status: str = Column(
         Enum(
             "processing",
@@ -35,6 +38,7 @@ class Video(Base):
 
 
 class VideoBlob(BaseModel):
+    """ The video blob model """
     username: str
     video_id: str
     blob_index: int

@@ -1,3 +1,4 @@
+""" This module contains the routes for user authentication. """
 import bcrypt
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, APIRouter, Request

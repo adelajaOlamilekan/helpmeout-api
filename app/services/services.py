@@ -1,6 +1,5 @@
 import asyncio
 import glob
-import json
 import os
 import subprocess
 
@@ -23,9 +22,9 @@ def process_video(
     Process a video by compressing it and extracting a thumbnail.
 
     Args:
-        video_id (int): The ID of the video.
+        video_id (str): The ID of the video.
         file_location (str): The location of the video file.
-        video_id (str): The name of the video file.
+        username (str): The name of the user.
 
     Raises:
         HTTPException: If an error occurs.
@@ -33,43 +32,54 @@ def process_video(
     Returns:
         None
     """
+
+    # Get a database connection
     db = next(get_db())
+
+    # Query the video by ID
     video = db.query(Video).filter(Video.id == video_id).first()
 
-    # Generate compressed and thumbnail filenames
-    audio = f"audio_{video_id}.mp3"
-    audio_location = os.path.join(VIDEO_DIR, username, video_id, audio)
-    audio_location = os.path.abspath(audio_location)
-    trans = f"transcript_{video_id}.json"
-    transcript_location = os.path.join(VIDEO_DIR, username, video_id, trans)
-    transcript_location = os.path.abspath(transcript_location)
-    comp = f"compressed_{video_id}.mp4"
-    compressed_location = os.path.join(VIDEO_DIR, username, video_id, comp)
-    compressed_location = os.path.abspath(compressed_location)
-    thumb = f"thumbnail_{video_id}.jpg"
-    thumbnail_location = os.path.join(VIDEO_DIR, username, video_id, thumb)
-    thumbnail_location = os.path.abspath(thumbnail_location)
+    # Generate file paths for audio, transcript, and thumbnail
+    audio_filename = f"audio_{video_id}.mp3"
+    audio_location = os.path.abspath(
+        os.path.join(VIDEO_DIR, username, video_id, audio_filename)
+    )
+
+    transcript_filename = f"transcript_{video_id}.srt"
+    transcript_location = os.path.abspath(
+        os.path.join(VIDEO_DIR, username, video_id, transcript_filename)
+    )
+
+    thumbnail_filename = f"thumbnail_{video_id}.jpg"
+    thumbnail_location = os.path.abspath(
+        os.path.join(VIDEO_DIR, username, video_id, thumbnail_filename)
+    )
 
     try:
+        # Extract audio from the video
         extract_audio(file_location, audio_location)
+
+        # Generate transcript using external API
         asyncio.run(
             generate_transcript(
                 audio_location, transcript_location, DEEPGRAM_API_KEY
             )
         )
-        compress_video(file_location, compressed_location)
-        extract_thumbnail(compressed_location, thumbnail_location)
+
+        # Extract thumbnail from compressed video
+        extract_thumbnail(file_location, thumbnail_location)
+
     except Exception as err:
-        # Update the video status to `failed`
+        # Update the video status to `failed` if an error occurs
         video.status = "failed"
         raise HTTPException(status_code=500, detail=str(err)) from err
 
-    # Update the video status and save the compressed and thumbnail locations
+    # Update the video status and save the transcript location
     video.transcript_location = transcript_location
-    video.compressed_location = compressed_location
     video.thumbnail_location = thumbnail_location
     video.status = "completed"
 
+    # Commit changes to the database and close the connection
     db.commit()
     db.close()
 
@@ -89,8 +99,8 @@ def extract_audio(input_path: str, output_path: str) -> None:
         "-vn",
         "-c:a",
         "libmp3lame",
-        "-q:a",
-        "2",
+        "-b:a",
+        "12k",
         output_path,
     ]
     subprocess.run(command, check=True)
@@ -100,12 +110,12 @@ def compress_video(input_path: str, output_path: str) -> None:
     """
     Compresses a video using ffmpeg.
 
-    Parameters:
-    - input_path: The path to the input video.
-    - output_path: The path to the output video.
+    Args:
+        input_path: The path to the input video.
+        output_path: The path to the output video.
 
     Returns:
-    - None
+        None
 
     """
     command = [
@@ -125,12 +135,12 @@ def extract_thumbnail(video_path: str, thumbnail_path: str) -> None:
     """
     Extracts a thumbnail from a video using ffmpeg.
 
-    Parameters:
-    - video_path: The path to the input video.
-    - thumbnail_path: The path to the output thumbnail.
+    Args:
+        video_path: The path to the input video.
+        thumbnail_path: The path to the output thumbnail.
 
     Returns:
-    - None
+        None
 
     """
     command = [
@@ -149,8 +159,10 @@ def extract_thumbnail(video_path: str, thumbnail_path: str) -> None:
 def is_valid_video(file_location: str) -> bool:
     """
     Check if a video file is valid by inspecting its metadata.
+
     Args:
         file_location (str): The location of the video file.
+
     Returns:
         bool: True if the video is valid, False otherwise.
     """
@@ -169,6 +181,7 @@ def is_valid_video(file_location: str) -> bool:
 def create_directory(*args):
     """
     Create a directory or directories.
+
     Args:
         *args: Variable length argument list of directory paths.
 
@@ -183,16 +196,17 @@ def create_directory(*args):
 def save_blob(
     username: str, video_id: str, blob_index: int, blob: bytes
 ) -> str:
-    """Saves a video blob/chunk.
+    """
+    Saves a video blob/chunk.
 
-    Parameters:
-    - username: The user associated with the blob.
-    - filename: The base filename for the video.
-    - blob_id: The ID for this blob, indicating its sequence.
-    - blob: The video blob itself.
+    Args:
+        username: The user associated with the blob.
+        video_id: The ID of the video associated with the blob.
+        blob_index: The index of the blob.
+        blob: The video blob itself.
 
     Returns:
-    - The path to the saved blob.
+        The path to the saved blob.
     """
     # Create the directory structure if it doesn't exist
     user_dir = os.path.join(VIDEO_DIR, username)
@@ -209,11 +223,12 @@ def save_blob(
 
 
 def merge_blobs(username: str, video_id: str) -> str:
-    """Merges video blobs/chunks to form the complete video.
+    """
+    Merges video blobs/chunks to form the complete video.
 
-    Parameters:
-    - username: The user associated with the blobs.
-    - filename: The base filename for the video.
+    Args:
+        username: The user associated with the blobs.
+        video_id: The ID of the video associated with the blobs.
 
     Returns:
     - The path to the merged video.
@@ -244,11 +259,11 @@ def generate_id():
     Generate a unique ID for a video.
 
     Returns:
-    - str: A unique ID for a video.
+        str: A unique ID for a video.
     """
 
     alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    return str(nanoid.generate(size=10, alphabet=alphabet))
+    return str(nanoid.generate(size=15, alphabet=alphabet))
 
 
 def get_transcript(audio_file: str, output_path: str) -> None:
@@ -272,31 +287,62 @@ async def generate_transcript(audio_file: str, save_to: str, api_key: str):
         save_to (str): The path to the output transcript file.
         api_key (str): The Deepgram API key.
     """
-    dg_client = Deepgram(api_key)
+    deepgram = Deepgram(api_key)
 
-    params = {"punctuate": True, "tier": "enhanced"}
+    params = {"punctuate": True, "tier": "enhanced", "utterances": True}
+    # params = {'smart_format': True, 'utterances': True}
     with open(audio_file, "rb") as audio:
         source = {"buffer": audio, "mimetype": "audio/mp3"}
 
-        response = await dg_client.transcription.prerecorded(
-            source, params, timeout=120
+        response: dict = deepgram.transcription.sync_prerecorded(
+            source, params
         )
+        deepgram.extra.to_SRT(response)
 
-        # Write the response to a file
-        with open(save_to, "w", encoding="utf-8") as audio:
-            json.dump(response, audio)
+        convert_to_srt(response, save_to)
+
+
+def convert_to_srt(transcript_data: dict, output_path: str) -> None:
+    """
+    Convert a transcript to SRT format.
+
+    Args:
+        transcript_data (dict): The transcript data.
+        output_path (str): The path to the output SRT file.
+
+    Returns:
+        None
+    """
+    data = transcript_data
+
+    # Extract transcript and word-level information
+    _ = data["results"]["channels"][0]["alternatives"][0]["transcript"]
+    words = data["results"]["channels"][0]["alternatives"][0]["words"]
+
+    # Create SRT caption file
+    srt_file = []
+
+    for i, word_info in enumerate(words):
+        start_time = round(word_info["start"], 3)
+        end_time = round(word_info["end"], 3)
+        word_text = word_info["punctuated_word"]
+
+        srt_entry = f"{i + 1}\n{start_time} --> {end_time}\n{word_text}\n"
+        srt_file.append(srt_entry)
+
+    # Save SRT caption file
+    with open(output_path, "w", encoding="utf-8") as file:
+        file.writelines(srt_file)
 
 
 def is_logged_in(request: Request) -> bool:
     """
      Checks if a user is currently logged in.
 
-    Parameters:
-        request: Holds the request metadata of a user when interacting with
-            the app.
+    Args:
+        request: The request object.
 
     Returns:
-        A truthy of Falsy value indicating if user is currently logged in or
-            not.
+        bool: True if the user is logged in, False otherwise.
     """
     return "username" in request.session and "logged_in" in request.session
