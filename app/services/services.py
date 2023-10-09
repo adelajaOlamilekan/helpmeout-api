@@ -1,5 +1,6 @@
 import asyncio
 import glob
+import json
 import os
 import subprocess
 
@@ -40,34 +41,36 @@ def process_video(
     video = db.query(Video).filter(Video.id == video_id).first()
 
     # Generate file paths for audio, transcript, and thumbnail
-    audio_filename = f"audio_{video_id}.mp3"
-    audio_location = os.path.abspath(
-        os.path.join(VIDEO_DIR, username, video_id, audio_filename)
+    audio_filename = f"audio_{video_id}"
+    audio_location = os.path.join(
+        VIDEO_DIR, username, video_id, audio_filename
     )
 
-    transcript_filename = f"transcript_{video_id}.srt"
-    transcript_location = os.path.abspath(
-        os.path.join(VIDEO_DIR, username, video_id, transcript_filename)
+    transcript_filename = f"transcript_{video_id}"
+    transcript_location = os.path.join(
+        VIDEO_DIR, username, video_id, transcript_filename
     )
 
-    thumbnail_filename = f"thumbnail_{video_id}.jpg"
-    thumbnail_location = os.path.abspath(
-        os.path.join(VIDEO_DIR, username, video_id, thumbnail_filename)
+    thumbnail_filename = f"thumbnail_{video_id}"
+    thumbnail_location = os.path.join(
+        VIDEO_DIR, username, video_id, thumbnail_filename
     )
 
     try:
         # Extract audio from the video
-        extract_audio(file_location, audio_location)
+        audio_location = extract_audio(file_location, audio_location, "mp3")
 
         # Generate transcript using external API
-        asyncio.run(
+        transcript_location = asyncio.run(
             generate_transcript(
-                audio_location, transcript_location, DEEPGRAM_API_KEY
+                audio_location, transcript_location, DEEPGRAM_API_KEY, "json"
             )
         )
 
         # Extract thumbnail from compressed video
-        extract_thumbnail(file_location, thumbnail_location)
+        thumbnail_location = extract_thumbnail(
+            file_location, thumbnail_location, "jpg"
+        )
 
     except Exception as err:
         # Update the video status to `failed` if an error occurs
@@ -84,14 +87,17 @@ def process_video(
     db.close()
 
 
-def extract_audio(input_path: str, output_path: str) -> None:
+def extract_audio(input_path: str, output_path: str, mimetype: str) -> str:
     """
     Extracts the audio from a video using ffmpeg.
 
     Args:
         input_path (str): The path to the input video.
         output_path (str): The path to the output audio.
+        mimetype (str): The mimetype of the output audio.
     """
+
+    output_path = f"{output_path}.{mimetype}"
     command = [
         "ffmpeg",
         "-i",
@@ -105,19 +111,25 @@ def extract_audio(input_path: str, output_path: str) -> None:
     ]
     subprocess.run(command, check=True)
 
+    return output_path
 
-def compress_video(input_path: str, output_path: str) -> None:
+
+def compress_video(
+    input_path: str, output_path: str, extension: str = "mp4"
+) -> str:
     """
     Compresses a video using ffmpeg.
 
     Args:
         input_path: The path to the input video.
         output_path: The path to the output video.
+        extension: The extension of the output video.
 
     Returns:
         None
 
     """
+    output_path = f"{output_path}.{extension}"
     command = [
         "ffmpeg",
         "-i",
@@ -130,19 +142,25 @@ def compress_video(input_path: str, output_path: str) -> None:
     ]
     subprocess.run(command, check=True)
 
+    return output_path
 
-def extract_thumbnail(video_path: str, thumbnail_path: str) -> None:
+
+def extract_thumbnail(
+    video_path: str, thumbnail_path: str, extension: str = "jpg"
+) -> str:
     """
     Extracts a thumbnail from a video using ffmpeg.
 
     Args:
         video_path: The path to the input video.
         thumbnail_path: The path to the output thumbnail.
+        extension: The extension of the output thumbnail.
 
     Returns:
         None
 
     """
+    thumbnail_path = f"{thumbnail_path}.{extension}"
     command = [
         "ffmpeg",
         "-i",
@@ -154,6 +172,8 @@ def extract_thumbnail(video_path: str, thumbnail_path: str) -> None:
         thumbnail_path,
     ]
     subprocess.run(command, check=True)
+
+    return thumbnail_path
 
 
 def is_valid_video(file_location: str) -> bool:
@@ -175,6 +195,7 @@ def is_valid_video(file_location: str) -> bool:
         check=False,
     )
     msg = "Invalid data found when processing input"
+
     return msg not in result.stderr
 
 
@@ -263,6 +284,7 @@ def generate_id():
     """
 
     alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
     return str(nanoid.generate(size=15, alphabet=alphabet))
 
 
@@ -278,7 +300,9 @@ def get_transcript(audio_file: str, output_path: str) -> None:
     asyncio.run(generate_transcript(audio_file, output_path, DEEPGRAM_API_KEY))
 
 
-async def generate_transcript(audio_file: str, save_to: str, api_key: str):
+async def generate_transcript(
+    audio_file: str, save_to: str, api_key: str, file_format: str = "json"
+):
     """
     Generate a transcript for an audio file using Deepgram's API.
 
@@ -286,6 +310,7 @@ async def generate_transcript(audio_file: str, save_to: str, api_key: str):
         audio_file (str): The path to the audio file.
         save_to (str): The path to the output transcript file.
         api_key (str): The Deepgram API key.
+        file_format (str, optional): The format of the output transcript file.
     """
     deepgram = Deepgram(api_key)
 
@@ -299,10 +324,21 @@ async def generate_transcript(audio_file: str, save_to: str, api_key: str):
         )
         deepgram.extra.to_SRT(response)
 
-        convert_to_srt(response, save_to)
+        transcript_file = f"{save_to}.{file_format}"
+
+        if file_format == "srt":
+            transcript_file = convert_to_srt(response, transcript_file)
+        elif file_format == "json":
+            transcript_file = convert_to_json(response, transcript_file)
+        else:
+            raise HTTPException(
+                status_code=400, detail="Unsupported file format"
+            )
+
+    return transcript_file
 
 
-def convert_to_srt(transcript_data: dict, output_path: str) -> None:
+def convert_to_srt(transcript_data: dict, output_path: str) -> str:
     """
     Convert a transcript to SRT format.
 
@@ -333,6 +369,40 @@ def convert_to_srt(transcript_data: dict, output_path: str) -> None:
     # Save SRT caption file
     with open(output_path, "w", encoding="utf-8") as file:
         file.writelines(srt_file)
+
+    return output_path
+
+
+def convert_to_json(transcript_data: dict, output_path: str) -> str:
+    """
+    Convert a transcript to JSON format.
+
+    Args:
+        transcript_data (dict): The transcript data.
+        output_path (str): The path to the output JSON file.
+
+    Returns:
+        None
+    """
+    data = transcript_data
+
+    # Extract transcript and word-level information
+    transcript = data["results"]["channels"][0]["alternatives"][0][
+        "transcript"
+    ]
+    words = data["results"]["channels"][0]["alternatives"][0]["words"]
+
+    # Create JSON file
+    json_file = {
+        "transcript": transcript,
+        "words": words,
+    }
+
+    # Save JSON file
+    with open(output_path, "w", encoding="utf-8") as file:
+        json.dump(json_file, file, indent=4)
+
+    return output_path
 
 
 def is_logged_in(request: Request) -> bool:

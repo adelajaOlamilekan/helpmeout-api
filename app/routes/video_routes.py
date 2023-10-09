@@ -164,8 +164,8 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
             username, with downloadable URLs instead of absolute paths.
     """
     if not is_logged_in(request):
-         return LogoutResponse(status_code=401, message="User not logged in")
-    
+        return LogoutResponse(status_code=401, message="User not logged in")
+
     videos = db.query(Video).filter(Video.username == username).all()
     db.close()
 
