@@ -93,8 +93,6 @@ async def login_user(
 
     actual_user_password = needed_user.hashed_password
 
-    print(hashed_password, actual_user_password)
-
     # Validating the entered password
     result = bcrypt.checkpw(hashed_password, actual_user_password)
 
