@@ -50,11 +50,6 @@ def process_video(
         os.path.join(VIDEO_DIR, username, video_id, transcript_filename)
     )
 
-    # compressed_filename = f"compressed_{video_id}.mp4"
-    # compressed_location = os.path.abspath(
-    #     os.path.join(VIDEO_DIR, username, video_id, compressed_filename)
-    # )
-
     thumbnail_filename = f"thumbnail_{video_id}.jpg"
     thumbnail_location = os.path.abspath(
         os.path.join(VIDEO_DIR, username, video_id, thumbnail_filename)
@@ -71,9 +66,6 @@ def process_video(
             )
         )
 
-        # Compress the video
-        # compress_video(file_location, compressed_location)
-
         # Extract thumbnail from compressed video
         extract_thumbnail(file_location, thumbnail_location)
 
@@ -84,7 +76,6 @@ def process_video(
 
     # Update the video status and save the transcript location
     video.transcript_location = transcript_location
-    # video.compressed_location = compressed_location
     video.thumbnail_location = thumbnail_location
     video.status = "completed"
 
@@ -306,9 +297,7 @@ async def generate_transcript(audio_file: str, save_to: str, api_key: str):
         response: dict = deepgram.transcription.sync_prerecorded(
             source, params
         )
-        # response = deepgram.extra.to_WebVTT(response)
         deepgram.extra.to_SRT(response)
-        # response.to_SRT()
 
         convert_to_srt(response, save_to)
 
