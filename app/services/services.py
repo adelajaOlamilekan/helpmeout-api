@@ -425,6 +425,4 @@ def hash_password(password: str):
     salt = bcrypt.gensalt()
 
     # Hashing the password
-    hashed_password = bcrypt.hashpw(pw_bytes, salt)
-
-    return hashed_password
+    return  bcrypt.hashpw(pw_bytes, salt)
