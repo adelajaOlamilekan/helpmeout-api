@@ -25,7 +25,7 @@ class User(Base):
     )
     hashed_password: str = Column(String, nullable=False)
     created_date: DateTime = Column(DateTime, server_default=func.now())
-    updated_date: DateTime = Column(DateTime, onupdate=func.now())
+    updated_date: Optional[DateTime] = Column(DateTime, onupdate=func.now())
     is_deleted: bool = Column(Boolean, default=False)
 
     # Add a unique constraint on 'username' and 'hashed_password' combination
