@@ -3,27 +3,24 @@ import base64
 import json
 import sys
 import requests
-from pathlib import Path
 
 
 # Configuration
-# VIDEO_FILE_PATH = "/home/cofucan/Videos/proj_demo.mp4"
-VIDEO_FILE_PATH = Path(r"C:\Users\abdulqowiyyu\Videos\sample.webm")
+VIDEO_FILE_PATH = "/home/cofucan/Videos/proj_demo.mp4"
 LOCAL_URL = "http://127.0.0.1:8000/srce/api"
 REMOTE_URL = "http://web-02.cofucan.tech/srce/api"
 
-# if sys.argv[1] == "--local":
-#     URL = LOCAL_URL
-# elif sys.argv[1] == "--remote":
-#     URL = REMOTE_URL
-# else:
-#     print("Invalid argument. Use '--local' or '--remote'")
-#     sys.exit()
+if sys.argv[1] == "--local":
+    URL = LOCAL_URL
+elif sys.argv[1] == "--remote":
+    URL = REMOTE_URL
+else:
+    print("Invalid argument. Use '--local' or '--remote'")
+    sys.exit()
 
-# GET_VIDEO_ID_URL = f"{URL}/start-recording/"
-# ENDPOINT_URL = f"{URL}/upload-blob/"
-GET_VIDEO_ID_URL = f"{LOCAL_URL}/start-recording/"
-ENDPOINT_URL = f"{LOCAL_URL}/upload-blob/"
+GET_VIDEO_ID_URL = f"{URL}/start-recording/"
+ENDPOINT_URL = f"{URL}/upload-blob/"
+
 BLOB_SIZE = 1 * 1024 * 1024  # 1MB by default. Adjust as needed.
 USERNAME = "user13"
 
