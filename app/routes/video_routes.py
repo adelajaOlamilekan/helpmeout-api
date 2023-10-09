@@ -225,7 +225,7 @@ def get_video(video_id: str, request: Request, db: Session = Depends(get_db)):
     return video
 
 
-@router.get("/recording/{video_id}.mp4")
+@router.get("/video/{video_id}.mp4")
 def stream_video(video_id: str, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.
