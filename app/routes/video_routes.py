@@ -154,8 +154,7 @@ def get_videos(request: Request, db: Session = Depends(get_db)):
             username.
     """
     user_id = request.session.get("username")
-    print(user_id)
-    
+
     if not is_logged_in(request):
         return LogoutResponse(status_code=401, message="User not logged in")
     
