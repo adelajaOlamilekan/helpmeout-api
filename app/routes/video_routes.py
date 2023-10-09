@@ -185,7 +185,7 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
     return videos
 
 
-@router.get("/recording/{video_id}")
+@router.get("/recording/{video_id}.mp4")
 def stream_video(video_id: str, db: Session = Depends(get_db)):
     """
     Stream a video by its video ID.
@@ -209,7 +209,7 @@ def stream_video(video_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Video not found.")
 
 
-@router.get("/recording/transcript/{video_id}")
+@router.get("/recording/transcript/{video_id}.json")
 def get_transcript(video_id: str, db: Session = Depends(get_db)):
     """
     Get the transcript for a video by its video ID.
@@ -233,7 +233,7 @@ def get_transcript(video_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Video not found.")
 
 
-@router.get("/recording/thumbnail/{video_id}")
+@router.get("/recording/thumbnail/{video_id}.jpeg")
 def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
     """
     Get the thumbnail for a video by its video ID.
