@@ -184,6 +184,28 @@ def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
 
     return videos
 
+@router.get("/recording/user/{username}/{video_id}")
+def get_video(username: str, video_id: str, db: Session = Depends(get_db)):
+    """
+    Retrieve a specific video by its video ID.
+
+    Parameters:
+        username (str): The username associated with the video.
+        video_id (str): The unique identifier of the video to retrieve.
+        db (Session): The database session.
+
+    Returns:
+        Video: The Video object corresponding to the provided video_id.
+
+    Raises:
+        HTTPException(404): If the video with the given video_id is not found.
+    """
+
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    return video
+
 
 @router.get("/recording/{video_id}")
 def stream_video(video_id: str, db: Session = Depends(get_db)):
