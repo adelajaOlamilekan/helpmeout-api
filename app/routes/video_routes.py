@@ -59,7 +59,7 @@ def start_recording(
         db.commit()
         db.refresh(new_user)
 
-    video_id=generate_id()
+    video_id = generate_id()
     video_data = Video(
         id=video_id,
         username=username,
