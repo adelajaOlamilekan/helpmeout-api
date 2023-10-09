@@ -272,7 +272,7 @@ def generate_id():
     """
 
     alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    return str(nanoid.generate(size=10, alphabet=alphabet))
+    return str(nanoid.generate(size=15, alphabet=alphabet))
 
 
 def get_transcript(audio_file: str, output_path: str) -> None:
