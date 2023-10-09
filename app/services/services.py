@@ -39,7 +39,7 @@ def process_video(
     # Query the video by ID
     video = db.query(Video).filter(Video.id == video_id).first()
 
-    # Generate file paths for audio, transcript, compressed video, and thumbnail
+    # Generate file paths for audio, transcript, and thumbnail
     audio_filename = f"audio_{video_id}.mp3"
     audio_location = os.path.abspath(
         os.path.join(VIDEO_DIR, username, video_id, audio_filename)
@@ -75,7 +75,7 @@ def process_video(
         # compress_video(file_location, compressed_location)
 
         # Extract thumbnail from compressed video
-        # extract_thumbnail(compressed_location, thumbnail_location)
+        extract_thumbnail(file_location, thumbnail_location)
 
     except Exception as err:
         # Update the video status to `failed` if an error occurs
@@ -85,7 +85,7 @@ def process_video(
     # Update the video status and save the transcript location
     video.transcript_location = transcript_location
     # video.compressed_location = compressed_location
-    # video.thumbnail_location = thumbnail_location
+    video.thumbnail_location = thumbnail_location
     video.status = "completed"
 
     # Commit changes to the database and close the connection

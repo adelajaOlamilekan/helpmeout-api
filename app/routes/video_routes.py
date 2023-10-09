@@ -7,6 +7,7 @@ from fastapi import (
     BackgroundTasks,
     Depends,
     HTTPException,
+    Request,
 )
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -141,21 +142,36 @@ def upload_video_blob(
     return {"msg": "Chunk received successfully!"}
 
 
-@router.get("/recording/user/{user_id}")
-def get_videos(username: str, db: Session = Depends(get_db)):
+@router.get("/recording/user/{username}")
+def get_videos(username: str, request: Request, db: Session = Depends(get_db)):
     """
-    Returns a list of videos associated with the given user_id.
+    Returns a list of videos associated with the given username.
 
     Parameters:
         username (str): The username for which to retrieve the videos.
+        request (Request): The FastAPI request object.
         db (Session): The database session.
 
     Returns:
         List[Video]: A list of Video objects associated with the given
-            username.
+            username, with downloadable URLs instead of absolute paths.
     """
     videos = db.query(Video).filter(Video.username == username).all()
     db.close()
+
+    # Replace the absolute paths with downloadable URLs
+    for video in videos:
+        video_id = video.id
+        video.original_location = request.url_for(
+            "stream_video", video_id=video_id
+        )
+        video.thumbnail_location = request.url_for(
+            "get_thumbnail", video_id=video_id
+        )
+        video.transcript_location = request.url_for(
+            "get_transcript", video_id=video_id
+        )
+
     return videos
 
 
@@ -180,6 +196,54 @@ def stream_video(video_id: str, db: Session = Depends(get_db)):
 
     if video:
         return FileResponse(video.original_location, media_type="video/mp4")
+    raise HTTPException(status_code=404, detail="Video not found.")
+
+
+@router.get("/recording/transcript/{video_id}")
+def get_transcript(video_id: str, db: Session = Depends(get_db)):
+    """
+    Get the transcript for a video by its video ID.
+
+    Parameters:
+        video_id (int): The ID of the video to be streamed.
+        db (Session, optional): The database session. Defaults to the
+            result of the get_db function.
+
+    Returns:
+        FileResponse: The file response containing the video stream.
+
+    Raises:
+        HTTPException: If the video is not found.
+    """
+    video = db.query(Video).filter(Video.id == video_id).first()
+    db.close()
+
+    if video:
+        return FileResponse(video.transcript_location, media_type="text/plain")
+    raise HTTPException(status_code=404, detail="Video not found.")
+
+
+@router.get("/recording/thumbnail/{video_id}")
+def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
+    """
+    Get the thumbnail for a video by its video ID.
+
+    Parameters:
+        video_id (int): The ID of the video to be streamed.
+        db (Session, optional): The database session. Defaults to the
+            result of the get_db function.
+
+    Returns:
+        FileResponse: The file response containing the video stream.
+
+    Raises:
+        HTTPException: If the video is not found.
+    """
+    video = db.query(Video).filter(Video.id == video_id).first()
+    db.close()
+
+    if video:
+        return FileResponse(video.thumbnail_location, media_type="image/jpeg")
     raise HTTPException(status_code=404, detail="Video not found.")
 
 
