@@ -266,6 +266,10 @@ def merge_blobs(username: str, video_id: str) -> str:
         key=lambda x: int(os.path.splitext(os.path.basename(x))[0]),
     )
 
+    # Check if no blobs were found
+    if not blob_files:
+        return None
+
     # Merge the blobs
     merged_video_path = os.path.join(temp_video_dir, f"{video_id}.mp4")
     with open(merged_video_path, "wb") as merged_file:
