@@ -150,7 +150,7 @@ def upload_video_blob(
         response = {
             "message": "Blobs received successfully, video is being processed",
             "video_id": video_data.video_id,
-            "_url": str(vid_url),
+            "video_url": str(vid_url),
         }
         db.close()
         return json.dumps(response, indent=2)
@@ -259,10 +259,9 @@ def stream_video(video_id: str, db: Session = Depends(get_db)):
         if not video.original_location:
             db.close()
             raise HTTPException(status_code=404, detail="No blobs found.")
-
-    video.status = "completed"
-    db.commit()
-    db.close()
+        video.status = "completed"
+        db.commit()
+        db.close()
 
     return FileResponse(video.original_location, media_type="video/mp4")
 
@@ -284,11 +283,14 @@ def get_transcript(video_id: str, db: Session = Depends(get_db)):
         HTTPException: If the video is not found.
     """
     video = db.query(Video).filter(Video.id == video_id).first()
-    db.close()
 
-    if video:
-        return FileResponse(video.transcript_location, media_type="text/plain")
-    raise HTTPException(status_code=404, detail="Video not found.")
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found.")
+    if video.status == "processing":
+        raise HTTPException(status_code=404, detail="Video not processed yet.")
+
+    db.close()
+    return FileResponse(video.transcript_location, media_type="text/plain")
 
 
 @router.get("/thumbnail/{video_id}.jpeg")
@@ -308,10 +310,13 @@ def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
         HTTPException: If the video is not found.
     """
     video = db.query(Video).filter(Video.id == video_id).first()
-    db.close()
 
     if not video:
         raise HTTPException(status_code=404, detail="Video not found.")
+    if video.status == "processing":
+        raise HTTPException(status_code=404, detail="Video not processed yet.")
+    db.close()
+
     return FileResponse(video.thumbnail_location, media_type="image/jpeg")
 
 
