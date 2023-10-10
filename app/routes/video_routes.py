@@ -365,11 +365,12 @@ def delete_video(video_id: str, db: Session = Depends(get_db)):
     """
     video = db.query(Video).filter(Video.id == video_id).first()
     if video:
-        os.remove(video.original_location)
-        if os.path.exists(video.thumbnail_location):
-            os.remove(video.thumbnail_location)
-        if os.path.exists(video.compressed_location):
-            os.remove(video.compressed_location)
+        if os.path.exists(str(video.original_location)):
+            os.remove(str(video.original_location))
+        if os.path.exists(str(video.thumbnail_location)):
+            os.remove(str(video.thumbnail_location))
+        if os.path.exists(str(video.compressed_location)):
+            os.remove(str(video.compressed_location))
 
         db.delete(video)
         db.commit()
