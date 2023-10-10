@@ -110,6 +110,10 @@ def upload_video_blob(
     if not video:
         raise HTTPException(status_code=404, detail="Video not found.")
 
+    # If the video is already completed, raise an exception
+    if video.status == "completed":
+        raise HTTPException(status_code=400, detail="Recording already processed.")
+
     # Decode the blob data
     blob_data = base64.b64decode(video_data.blob_object)
 
@@ -127,6 +131,9 @@ def upload_video_blob(
         video.original_location = merge_blobs(
             video_data.username, video_data.video_id
         )
+        if not video.original_location:
+            db.close()
+            raise HTTPException(status_code=404, detail="No blobs found.")
 
         video.status = "completed"
         db.commit()
@@ -243,14 +250,24 @@ def stream_video(video_id: str, db: Session = Depends(get_db)):
         HTTPException: If the video is not found.
     """
     video = db.query(Video).filter(Video.id == video_id).first()
+
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found.")
+
+    if video.status == "processing":
+        video.original_location = merge_blobs(video.username, video_id)
+        if not video.original_location:
+            db.close()
+            raise HTTPException(status_code=404, detail="No blobs found.")
+
+    video.status = "completed"
+    db.commit()
     db.close()
 
-    if video:
-        return FileResponse(video.original_location, media_type="video/mp4")
-    raise HTTPException(status_code=404, detail="Video not found.")
+    return FileResponse(video.original_location, media_type="video/mp4")
 
 
-@router.get("/recording/transcript/{video_id}.json")
+@router.get("/transcript/{video_id}.json")
 def get_transcript(video_id: str, db: Session = Depends(get_db)):
     """
     Get the transcript for a video by its video ID.
@@ -274,7 +291,7 @@ def get_transcript(video_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Video not found.")
 
 
-@router.get("/recording/thumbnail/{video_id}.jpeg")
+@router.get("/thumbnail/{video_id}.jpeg")
 def get_thumbnail(video_id: str, db: Session = Depends(get_db)):
     """
     Get the thumbnail for a video by its video ID.
