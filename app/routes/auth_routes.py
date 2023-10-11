@@ -176,9 +176,8 @@ async def logout_user(
 @auth_router.get("/google/login/")
 async def google_login():
     """ Generate Login URL and redirect """
-    return {GOOGLE_CLIENT_SECRET: GOOGLE_CLIENT_ID }
-    # with google_sso:
-    #     return await google_sso.get_login_redirect()
+    with google_sso:
+        return await google_sso.get_login_redirect()
 
 @auth_router.get("/google/callback/")
 async def google_callback(request: Request, db: Session = Depends(get_db)) -> UserResponse:
