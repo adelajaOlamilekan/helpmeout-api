@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 import os
 from app.database import get_db
-from app.services.services import is_logged_in, hash_password, create_access_token
+from app.services.services import is_logged_in, hash_password
 from fastapi_sso.sso.google import GoogleSSO
 from fastapi_sso.sso.facebook import FacebookSSO
 from fastapi.responses import RedirectResponse
