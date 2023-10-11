@@ -12,9 +12,9 @@ python-dotenv==0.21.1
 itsdangerous==2.1.2
 deepgram_sdk==2.11.0
 nanoid==2.0.0
-python_bcrypt==0.3.2
 Requests==2.31.0
 SQLAlchemy==2.0.21
 starlette==0.29.0
+bcrypt==4.0.1
 
 
