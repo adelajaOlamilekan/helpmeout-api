@@ -37,8 +37,8 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 FACEBOOK_CLIENT_ID = os.getenv("FACEBOOK_CLIENT_ID")
 FACEBOOK_CLIENT_SECRET = os.getenv("FACEBOOK_CLIENT_SECRET")
 
-GOOGLE_REDIRECT_URL = "http://127.0.0.1:8000/srce/api/google/callback/"
-FACEBOOK_REDIRECT_URL = "http://127.0.0.1:8000/srce/api/facebook/callback/"
+GOOGLE_REDIRECT_URL = "https://screen-recorder-476l.onrender.com/srce/api/google/callback/"
+FACEBOOK_REDIRECT_URL = "https://screen-recorder-476l.onrender.com/srce/api/facebook/callback/"
 
 #Ensuring oauthlib allows http protocol for testing
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -46,15 +46,13 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 google_sso = GoogleSSO(
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URL,
-    allow_insecure_http=True
+    GOOGLE_REDIRECT_URL
     ) 
 
 facebook_sso = FacebookSSO(
     FACEBOOK_CLIENT_ID,
     FACEBOOK_CLIENT_SECRET,
-    FACEBOOK_REDIRECT_URL,
-    allow_insecure_http=True
+    FACEBOOK_REDIRECT_URL
 )
 
 @auth_router.post("/signup/", response_model=UserResponse)
