@@ -22,19 +22,19 @@ def create_app() -> FastAPI:
     "http://localhost",
     "http://localhost:3000",
     "https://helpmeout-dev.vercel.app"
-]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include routes
-app.include_router(router)
-app.include_router(auth_router)
-
-app.add_middleware(SessionMiddleware, secret_key="")
-
-return app
+    ]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    # Include routes
+    app.include_router(router)
+    app.include_router(auth_router)
+    
+    app.add_middleware(SessionMiddleware, secret_key="")
+    
+    return app
