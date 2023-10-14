@@ -31,10 +31,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-    # Include routes
-    app.include_router(router)
-    app.include_router(auth_router)
+# Include routes
+app.include_router(router)
+app.include_router(auth_router)
 
-    app.add_middleware(SessionMiddleware, secret_key="")
+app.add_middleware(SessionMiddleware, secret_key="")
 
-    return app
+return app
